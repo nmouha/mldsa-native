@@ -6,7 +6,7 @@ stdenv.mkDerivation rec {
   pname = "s2n_bignum";
   version = "b70f1349bdc930769dbe5fee070044c27395e70a";
   src = fetchFromGitHub {
-    owner = "awslabs";
+    owner = "jakemas";
     repo = "s2n-bignum";
     rev = "${version}";
     hash = "sha256-zZYIOp3bL/Asr4RdDYDFH804EJoRB4CKFmjKZepKEvA=";
