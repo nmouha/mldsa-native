@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1776834007747,
+  "lastUpdate": 1776834011990,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -256381,6 +256381,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 458874,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "39c75c494604e697fbc94207d53774fa26c81c2e",
+          "message": "check-contracts: Detect contracts separated from prototype by a comment\n\nThe previous regex skipped contracts with a block comment between the\nprototype's `)` and `__contract__`, silently missing six AVX2 contracts\n(ntt_avx2, invntt_avx2, pointwise_avx2, pointwise_acc_l{4,5,7}_avx2).\nStrip comments before matching, and add `_avx2` to the exception list\nalongside `_native` and `_asm`.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-22T12:54:44+08:00",
+          "tree_id": "e1e9dd21ad7e196ff6ee76986de237ccb6886a1f",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/39c75c494604e697fbc94207d53774fa26c81c2e"
+        },
+        "date": 1776834003531,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 157177,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 550739,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 169274,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 268150,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 895348,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 274635,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 450931,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1161206,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 461110,
             "unit": "cycles"
           }
         ]
