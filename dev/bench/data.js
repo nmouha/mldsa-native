@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777093353008,
+  "lastUpdate": 1777093514120,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -76443,6 +76443,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 1379152,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "be8adae9bde36a55d77c8107b0ce2d000c2ddc0e",
+          "message": "CI: Bump ACVP, liboqs, expo, and AWS-LC versions\n\n- ACVP: slide window to [v1.1.0.40, v1.1.0.41, v1.1.0.42]\n- liboqs: bump to main (2026-04-21, d8509387)\n- expo: bump to master (2026-04-21, 53619a73)\n- AWS-LC: bump v1.67.0 -> v1.72.0\n\nPort of https://github.com/pq-code-package/mlkem-native/pull/1662.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-25T05:29:46+01:00",
+          "tree_id": "1e9bcb35e0c79ff79f685ddd11af6416b7d74219",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/be8adae9bde36a55d77c8107b0ce2d000c2ddc0e"
+        },
+        "date": 1777093510811,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 461088,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 2129773,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 550251,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 774847,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 3481570,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 853777,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 1248309,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 4313907,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 1370464,
             "unit": "cycles"
           }
         ]
