@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777263136053,
+  "lastUpdate": 1777263151285,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -259762,6 +259762,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 463485,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "a115e22d34445920ff7016e15bdacd33a8cfb16c",
+          "message": "nix: Pull CBMC 6.9.0 from nixos-unstable binary cache\n\nCBMC 6.9.0 is now available in nixos-unstable, so we can fetch it\nprebuilt instead of rebuilding from source.\n\nAlso drop the standalone cadical binary from the CBMC package env,\nthe CI version-summary line, and print_tool_versions.py: cbmc\nbundles its own cadical internally, so the standalone one on PATH\ndid not reflect the solver actually used.\n\n- Ports https://github.com/pq-code-package/mlkem-native/pull/1666\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-27T12:07:10+08:00",
+          "tree_id": "a678a83f9e777f7aabe0aa1fab56a19bcf7ef4f9",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/a115e22d34445920ff7016e15bdacd33a8cfb16c"
+        },
+        "date": 1777263150087,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 156980,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 547307,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 168697,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 269246,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 904184,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 275581,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 450947,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1161711,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 460668,
             "unit": "cycles"
           }
         ]
