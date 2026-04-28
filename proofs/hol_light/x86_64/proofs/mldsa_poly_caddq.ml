@@ -60,12 +60,9 @@ let mldsa_poly_caddq_mc = define_assert_from_elf "mldsa_poly_caddq_mc" "x86_64/m
 ];;
 (*** BYTECODE END ***)
 
-let mldsa_poly_caddq_tmc = CONJUNCT1(CONJUNCT2 (SPEC
-  `mldsa_poly_caddq_mc` BUTLAST_CLAUSES));;
-
+let mldsa_poly_caddq_tmc = define_trimmed "mldsa_poly_caddq_tmc" mldsa_poly_caddq_mc;;
 let MLDSA_POLY_CADDQ_EXEC = X86_MK_EXEC_RULE mldsa_poly_caddq_mc;;
-let MLDSA_POLY_CADDQ_TMC_EXEC = X86_MK_EXEC_RULE
-  (REWRITE_RULE [mldsa_poly_caddq_tmc] (SPEC `mldsa_poly_caddq_mc` BUTLAST_CLAUSES));;
+let MLDSA_POLY_CADDQ_TMC_EXEC = X86_MK_CORE_EXEC_RULE mldsa_poly_caddq_tmc;;
 
 (* ------------------------------------------------------------------------- *)
 (* Code length constants                                                     *)
@@ -116,7 +113,7 @@ let MLDSA_POLY_CADDQ_CORRECT = prove
  (`!a x pc.
         nonoverlapping (word pc,LENGTH mldsa_poly_caddq_mc) (a,1024)
         ==> ensures x86
-             (\s. bytes_loaded s (word pc) (BUTLAST mldsa_poly_caddq_mc) /\
+             (\s. bytes_loaded s (word pc) (BUTLAST mldsa_poly_caddq_tmc) /\
                   read RIP s = word pc /\
                   C_ARGUMENTS [a] s /\
                   (!i. i < 256 ==>
@@ -175,10 +172,10 @@ let MLDSA_POLY_CADDQ_CORRECT = prove
 
 let MLDSA_POLY_CADDQ_NOIBT_SUBROUTINE_CORRECT = prove
  (`!a x pc stackpointer returnaddress.
-        nonoverlapping (word pc,LENGTH mldsa_poly_caddq_mc) (a,1024) /\
+        nonoverlapping (word pc,LENGTH mldsa_poly_caddq_tmc) (a,1024) /\
         nonoverlapping (stackpointer,8) (a,1024)
         ==> ensures x86
-             (\s. bytes_loaded s (word pc) mldsa_poly_caddq_mc /\
+             (\s. bytes_loaded s (word pc) mldsa_poly_caddq_tmc /\
                   read RIP s = word pc /\
                   read RSP s = stackpointer /\
                   read (memory :> bytes64 stackpointer) s = returnaddress /\
@@ -193,7 +190,7 @@ let MLDSA_POLY_CADDQ_NOIBT_SUBROUTINE_CORRECT = prove
                      ival(x i) rem &8380417))
              (MAYCHANGE [RSP] ,, MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
               MAYCHANGE [memory :> bytes(a,1024)])`,
-  X86_PROMOTE_RETURN_NOSTACK_TAC mldsa_poly_caddq_mc MLDSA_POLY_CADDQ_CORRECT);;
+  X86_PROMOTE_RETURN_NOSTACK_TAC mldsa_poly_caddq_tmc MLDSA_POLY_CADDQ_CORRECT);;
 
 let MLDSA_POLY_CADDQ_SUBROUTINE_CORRECT = prove
  (`!a x pc stackpointer returnaddress.
