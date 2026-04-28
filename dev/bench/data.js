@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777370536015,
+  "lastUpdate": 1777370681719,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -51191,6 +51191,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 876618,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "c632ec628a93bce290b9e2d96bf82a991fbbb541",
+          "message": "lowram: Eliminate y vector in REDUCE_RAM mode in sign\n\nAdd mld_yvec following the lazy polyvec pattern: in REDUCE_RAM mode it\nstores only the seed and nonce and regenerates y[i] on demand. The\nfused matrix-vector helper mld_polyvec_matrix_pointwise_montgomery_yvec\nsamples y column-by-column in REDUCE_RAM mode.\n\nAdjust CBMC proofs accordingly.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-28T10:26:54+01:00",
+          "tree_id": "9d01262757c836fd873fa5912f61084db87a21b9",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/c632ec628a93bce290b9e2d96bf82a991fbbb541"
+        },
+        "date": 1777370678276,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 323626,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 1229399,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 350112,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 579966,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 2001455,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 558425,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 909080,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 2563222,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 931465,
             "unit": "cycles"
           }
         ]
