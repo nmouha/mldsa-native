@@ -259,6 +259,7 @@ source code and documentation.
   - [proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l4.S](proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l4.S)
   - [proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l5.S](proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l5.S)
   - [proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l7.S](proofs/hol_light/x86_64/mldsa/mldsa_pointwise_acc_l7.S)
+  - [proofs/hol_light/x86_64/mldsa/mldsa_poly_caddq.S](proofs/hol_light/x86_64/mldsa/mldsa_poly_caddq.S)
 
 ### `Round3_Spec`
 
