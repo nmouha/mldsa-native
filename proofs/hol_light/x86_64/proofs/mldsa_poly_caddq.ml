@@ -23,30 +23,30 @@ let mldsa_poly_caddq_mc = define_assert_from_elf "mldsa_poly_caddq_mc" "x86_64/m
                            (* MOV (% edx) (Imm32 (word 8380417)) *)
   0x48; 0x8d; 0x87; 0x00; 0x04; 0x00; 0x00;
                            (* LEA (% rax) (%% (rdi,1024)) *)
-  0xc5; 0xe9; 0xef; 0xd2;  (* VPXOR (% xmm2) (% xmm2) (% xmm2) *)
-  0xc5; 0xf9; 0x6e; 0xca;  (* VMOVD (% xmm1) (% edx) *)
+  0xc5; 0xe9; 0xef; 0xd2;  (* VPXOR (%_% xmm2) (%_% xmm2) (%_% xmm2) *)
+  0xc5; 0xf9; 0x6e; 0xca;  (* VMOVD (%_% xmm1) (% edx) *)
   0xc4; 0xe2; 0x7d; 0x58; 0xc9;
                            (* VPBROADCASTD (%_% ymm1) (%_% xmm1) *)
-  0xc5; 0xed; 0x66; 0x07;  (* VPCMPGTD (%_% ymm0) (Memop Word256 (%% (rdi,0))) (%_% ymm2) *)
+  0xc5; 0xed; 0x66; 0x07;  (* VPCMPGTD (%_% ymm0) (%_% ymm2) (Memop Word256 (%% (rdi,0))) *)
   0xc5; 0xfd; 0xdb; 0xc1;  (* VPAND (%_% ymm0) (%_% ymm0) (%_% ymm1) *)
   0xc5; 0xfd; 0xfe; 0x07;  (* VPADDD (%_% ymm0) (%_% ymm0) (Memop Word256 (%% (rdi,0))) *)
   0xc5; 0xfd; 0x7f; 0x07;  (* VMOVDQA (Memop Word256 (%% (rdi,0))) (%_% ymm0) *)
   0xc5; 0xed; 0x66; 0x5f; 0x20;
-                           (* VPCMPGTD (%_% ymm3) (Memop Word256 (%% (rdi,32))) (%_% ymm2) *)
+                           (* VPCMPGTD (%_% ymm3) (%_% ymm2) (Memop Word256 (%% (rdi,32))) *)
   0xc5; 0xe5; 0xdb; 0xd9;  (* VPAND (%_% ymm3) (%_% ymm3) (%_% ymm1) *)
   0xc5; 0xe5; 0xfe; 0x5f; 0x20;
                            (* VPADDD (%_% ymm3) (%_% ymm3) (Memop Word256 (%% (rdi,32))) *)
   0xc5; 0xfd; 0x7f; 0x5f; 0x20;
                            (* VMOVDQA (Memop Word256 (%% (rdi,32))) (%_% ymm3) *)
   0xc5; 0xed; 0x66; 0x67; 0x40;
-                           (* VPCMPGTD (%_% ymm4) (Memop Word256 (%% (rdi,64))) (%_% ymm2) *)
+                           (* VPCMPGTD (%_% ymm4) (%_% ymm2) (Memop Word256 (%% (rdi,64))) *)
   0xc5; 0xdd; 0xdb; 0xe1;  (* VPAND (%_% ymm4) (%_% ymm4) (%_% ymm1) *)
   0xc5; 0xdd; 0xfe; 0x67; 0x40;
                            (* VPADDD (%_% ymm4) (%_% ymm4) (Memop Word256 (%% (rdi,64))) *)
   0xc5; 0xfd; 0x7f; 0x67; 0x40;
                            (* VMOVDQA (Memop Word256 (%% (rdi,64))) (%_% ymm4) *)
   0xc5; 0xed; 0x66; 0x6f; 0x60;
-                           (* VPCMPGTD (%_% ymm5) (Memop Word256 (%% (rdi,96))) (%_% ymm2) *)
+                           (* VPCMPGTD (%_% ymm5) (%_% ymm2) (Memop Word256 (%% (rdi,96))) *)
   0xc5; 0xd5; 0xdb; 0xe9;  (* VPAND (%_% ymm5) (%_% ymm5) (%_% ymm1) *)
   0xc5; 0xd5; 0xfe; 0x6f; 0x60;
                            (* VPADDD (%_% ymm5) (%_% ymm5) (Memop Word256 (%% (rdi,96))) *)
@@ -55,7 +55,8 @@ let mldsa_poly_caddq_mc = define_assert_from_elf "mldsa_poly_caddq_mc" "x86_64/m
   0x48; 0x81; 0xc7; 0x80; 0x00; 0x00; 0x00;
                            (* ADD (% rdi) (Imm32 (word 128)) *)
   0x48; 0x39; 0xf8;        (* CMP (% rax) (% rdi) *)
-  0x75; 0xab               (* JNE (Imm8 (word 171)) *)
+  0x75; 0xab;              (* JNE (Imm8 (word 171)) *)
+  0xc3                     (* RET *)
 ];;
 (*** BYTECODE END ***)
 
