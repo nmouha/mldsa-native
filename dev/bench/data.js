@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777375134090,
+  "lastUpdate": 1777375268601,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -51329,6 +51329,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 931465,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "willie.zhao@chelpis.com",
+            "name": "willieyz",
+            "username": "willieyz"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "a0558da2b04beb23720b03e4f32bf18e90bbf2d3",
+          "message": "Windows: Run ACVP test in Windows nmake (C backend)\n\n- Ports https://github.com/pq-code-package/mlkem-native/pull/1668\n\nSigned-off-by: willieyz <willie.zhao@chelpis.com>",
+          "timestamp": "2026-04-28T18:48:57+08:00",
+          "tree_id": "014bf669561b6777d06ccb3a7919f6c0ecfd9dde",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/a0558da2b04beb23720b03e4f32bf18e90bbf2d3"
+        },
+        "date": 1777375265251,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 312977,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 1208466,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 345698,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 575597,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 1988919,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 557981,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 895860,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 2538691,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 922557,
             "unit": "cycles"
           }
         ]
