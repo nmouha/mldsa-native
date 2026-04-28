@@ -10,6 +10,7 @@
 (* ========================================================================= *)
 
 needs "x86/proofs/base.ml";;
+needs "common/mldsa_specs.ml";;
 needs "x86_64/proofs/mldsa_utils.ml";;
 
 (**** print_literal_from_elf "x86_64/mldsa/mldsa_poly_caddq.o";;
@@ -132,36 +133,111 @@ let MLDSA_POLY_CADDQ_CORRECT = prove
   REWRITE_TAC[C_ARGUMENTS; NONOVERLAPPING_CLAUSES] THEN
   DISCH_THEN(REPEAT_TCL CONJUNCTS_THEN ASSUME_TAC) THEN
 
-  CONV_TAC(RATOR_CONV(LAND_CONV(ONCE_DEPTH_CONV
-   (EXPAND_CASES_CONV THENC ONCE_DEPTH_CONV NUM_MULT_CONV)))) THEN
+  (*** Setup: steps 1-5 (MOV, LEA, VPXOR, VMOVD, VPBROADCASTD) ***)
 
-  ENSURES_INIT_TAC "s0" THEN
+  ENSURES_SEQUENCE_TAC `pc + 25`
+   `\s. bytes_loaded s (word pc) (BUTLAST mldsa_poly_caddq_tmc) /\
+        read RDI s = a /\
+        read RAX s = word_add a (word 1024) /\
+        read YMM2 s = word 0 /\
+        (!i. i < 256 ==>
+           read(memory :> bytes32(word_add a (word(4 * i)))) s = x i) /\
+        (!i. i < 256 ==> abs(ival(x i)) < &8380417)` THEN
+  CONJ_TAC THENL
+  [ENSURES_INIT_TAC "s0" THEN
+   X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC (1--5) THEN
+   ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
+   CONV_TAC WORD_REDUCE_CONV;
+   ALL_TAC] THEN
 
-  MP_TAC(end_itlist CONJ (map (fun n -> READ_MEMORY_MERGE_CONV 2
-            (subst[mk_small_numeral(16*n),`n:num`]
-                  `read (memory :> bytes128(word_add a (word n))) s0`))
-            (0--63))) THEN
-  ASM_REWRITE_TAC[WORD_ADD_0] THEN
-  DISCARD_MATCHING_ASSUMPTIONS [`read (memory :> bytes32 a) s = x`] THEN
-  STRIP_TAC THEN
+  (*** Main loop: 8 iterations, each processing 32 elements ***)
 
-  MAP_UNTIL_TARGET_PC (fun n ->
-    X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC [n] THEN
-    RULE_ASSUM_TAC(CONV_RULE(TOP_DEPTH_CONV WORD_SIMPLE_SUBWORD_CONV THENC ONCE_REWRITE_CONV [GSYM caddq32]))) 1 THEN
+  ENSURES_WHILE_UP_TAC `8` `pc + 25` `pc + 108`
+   `\i s. bytes_loaded s (word pc) (BUTLAST mldsa_poly_caddq_tmc) /\
+          read RDI s = word_add a (word(128 * i)) /\
+          read RAX s = word_add a (word 1024) /\
+          read YMM2 s = word 0 /\
+          (!j. j < 32 * i ==>
+             ival(read(memory :> bytes32(word_add a (word(4 * j)))) s) =
+             ival(x j) rem &8380417) /\
+          (!j. 32 * i <= j /\ j < 256 ==>
+             read(memory :> bytes32(word_add a (word(4 * j)))) s = x j) /\
+          (!j. j < 256 ==> abs(ival(x j)) < &8380417)` THEN
+  ASM_REWRITE_TAC[] THEN REPEAT CONJ_TAC THENL
+  [
+    (*** Initial case: invariant holds at i=0 ***)
+    REWRITE_TAC[MULT_CLAUSES; LT; LE_0] THEN
+    ENSURES_INIT_TAC "s0" THEN
+    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[];
 
-  ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
+    (*** Loop body: one iteration, i -> i+1 ***)
+    X_GEN_TAC `i:num` THEN STRIP_TAC THEN
+    REWRITE_TAC[ARITH_RULE `32 * (i + 1) = 32 * i + 32`] THEN
+    ENSURES_INIT_TAC "s0" THEN
 
-  REPEAT(FIRST_X_ASSUM(STRIP_ASSUME_TAC o
-   CONV_RULE(READ_MEMORY_SPLIT_CONV 2) o
-   check (can (term_match [] `read qqq s:int128 = xxx`) o concl))) THEN
+    (* Merge 32-bit reads into 256-bit for the 4 YMM loads *)
+    MP_TAC(end_itlist CONJ (map (fun k ->
+       READ_MEMORY_MERGE_CONV 3
+         (subst[mk_small_numeral(128 * i + 32 * k),`n:num`]
+               `read (memory :> bytes256(word_add a (word n))) s0`))
+       (0--3))) THEN
+    ASM_REWRITE_TAC[WORD_ADD_0] THEN
+    CONV_TAC WORD_REDUCE_CONV THEN
+    STRIP_TAC THEN
 
-  RULE_ASSUM_TAC (CONV_RULE (RAND_CONV (TOP_DEPTH_CONV WORD_SIMPLE_SUBWORD_CONV))) THEN
+    MAP_EVERY (fun n ->
+      X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC [n] THEN
+      SIMD_SIMPLIFY_TAC[caddq32]) (1--17) THEN
 
-  CONV_TAC(EXPAND_CASES_CONV THENC ONCE_DEPTH_CONV NUM_MULT_CONV) THEN
-  ASM_REWRITE_TAC[WORD_ADD_0] THEN
+    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
 
-  DISCARD_NONMATCHING_ASSUMPTIONS [`abs (ival t) < &8380417`] THEN
-  REPEAT CONJ_TAC THEN MATCH_MP_TAC caddq32_rem THEN ASM_REWRITE_TAC[]);;
+    (* Split 256-bit writes back to 32-bit *)
+    REPEAT(FIRST_X_ASSUM(STRIP_ASSUME_TAC o
+      CONV_RULE(SIMD_SIMPLIFY_CONV[caddq32]) o
+      CONV_RULE(READ_MEMORY_SPLIT_CONV 3) o
+      check (can (term_match [] `read qqq s:int256 = xxx`) o concl))) THEN
+
+    DISCARD_MATCHING_ASSUMPTIONS [`read a s = b`] THEN
+
+    REPEAT CONJ_TAC THENL
+    [CONV_TAC WORD_RULE;
+     (* Processed elements: 0..32*i+31 *)
+     X_GEN_TAC `j:num` THEN DISCH_TAC THEN
+     ASM_CASES_TAC `j < 32 * i` THENL
+     [FIRST_X_ASSUM(MP_TAC o SPEC `j:num`) THEN ASM_REWRITE_TAC[] THEN
+      MATCH_MP_TAC(MESON[] `a = b ==> a = c ==> b = c`) THEN
+      AP_THM_TAC THEN AP_TERM_TAC THEN AP_TERM_TAC THEN AP_TERM_TAC THEN
+      CONV_TAC WORD_RULE;
+      (* New elements from this iteration *)
+      FIRST_X_ASSUM(MP_TAC o SPEC `j:num`) THEN
+      ANTS_TAC THENL [ASM_ARITH_TAC; ALL_TAC] THEN
+      DISCH_THEN SUBST1_TAC THEN
+      MATCH_MP_TAC caddq32_rem THEN
+      FIRST_X_ASSUM MATCH_MP_TAC THEN ASM_ARITH_TAC];
+     (* Unprocessed elements: 32*(i+1)..255 *)
+     X_GEN_TAC `j:num` THEN STRIP_TAC THEN
+     FIRST_X_ASSUM(MP_TAC o SPEC `j:num`) THEN
+     ANTS_TAC THENL [ASM_ARITH_TAC; ALL_TAC] THEN
+     MATCH_MP_TAC(MESON[] `a = b ==> a = c ==> b = c`) THEN
+     AP_THM_TAC THEN AP_TERM_TAC THEN AP_TERM_TAC THEN AP_TERM_TAC THEN
+     CONV_TAC WORD_RULE;
+     ASM_REWRITE_TAC[]];
+
+    (*** Back edge: loop test ***)
+    X_GEN_TAC `i:num` THEN STRIP_TAC THEN
+    VAL_INT64_TAC `128 * i` THEN
+    ENSURES_INIT_TAC "s0" THEN
+    X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC (1--2) THEN
+    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
+    ASM_REWRITE_TAC[VAL_WORD_SUB_EQ_0] THEN
+    CONV_TAC WORD_RULE;
+
+    (*** Tail: after loop, step to RET ***)
+    REWRITE_TAC[ARITH_RULE `32 * 8 = 256`; LT_REFL; LE_REFL] THEN
+    ENSURES_INIT_TAC "s0" THEN
+    X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC [1] THEN
+    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[]
+  ]);;
 
 (* ------------------------------------------------------------------------- *)
 (* Subroutine correctness theorem (includes return)                          *)
