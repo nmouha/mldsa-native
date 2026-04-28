@@ -51,6 +51,7 @@ endif
 SPLIT=tr ';' '\n'
 
 OBJ = mldsa/mldsa_ntt.o mldsa/mldsa_intt.o mldsa/mldsa_nttunpack.o \
+      mldsa/mldsa_poly_caddq.o \
       mldsa/mldsa_pointwise.o \
       mldsa/mldsa_pointwise_acc_l4.o \
       mldsa/mldsa_pointwise_acc_l5.o \

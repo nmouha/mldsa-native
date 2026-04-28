@@ -1,0 +1,217 @@
+(*
+ * Copyright (c) The mldsa-native project authors
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT-0
+ *)
+
+(* ========================================================================= *)
+(* Functional correctness of poly_caddq:                                     *)
+(* Modular reduction of polynomial coefficients from (-q, q) to [0, q)       *)
+(* ========================================================================= *)
+
+needs "x86/proofs/base.ml";;
+needs "x86_64/proofs/mldsa_utils.ml";;
+
+(**** print_literal_from_elf "x86_64/mldsa/mldsa_poly_caddq.o";;
+ ****)
+
+let mldsa_poly_caddq_mc = define_assert_from_elf "mldsa_poly_caddq_mc" "x86_64/mldsa/mldsa_poly_caddq.o"
+(*** BYTECODE START ***)
+[
+  0xf3; 0x0f; 0x1e; 0xfa;  (* ENDBR64 *)
+  0xba; 0x01; 0xe0; 0x7f; 0x00;
+                           (* MOV (% edx) (Imm32 (word 8380417)) *)
+  0x48; 0x8d; 0x87; 0x00; 0x04; 0x00; 0x00;
+                           (* LEA (% rax) (%% (rdi,1024)) *)
+  0xc5; 0xe9; 0xef; 0xd2;  (* VPXOR (% xmm2) (% xmm2) (% xmm2) *)
+  0xc5; 0xf9; 0x6e; 0xca;  (* VMOVD (% xmm1) (% edx) *)
+  0xc4; 0xe2; 0x7d; 0x58; 0xc9;
+                           (* VPBROADCASTD (%_% ymm1) (%_% xmm1) *)
+  0xc5; 0xed; 0x66; 0x07;  (* VPCMPGTD (%_% ymm0) (Memop Word256 (%% (rdi,0))) (%_% ymm2) *)
+  0xc5; 0xfd; 0xdb; 0xc1;  (* VPAND (%_% ymm0) (%_% ymm0) (%_% ymm1) *)
+  0xc5; 0xfd; 0xfe; 0x07;  (* VPADDD (%_% ymm0) (%_% ymm0) (Memop Word256 (%% (rdi,0))) *)
+  0xc5; 0xfd; 0x7f; 0x07;  (* VMOVDQA (Memop Word256 (%% (rdi,0))) (%_% ymm0) *)
+  0xc5; 0xed; 0x66; 0x5f; 0x20;
+                           (* VPCMPGTD (%_% ymm3) (Memop Word256 (%% (rdi,32))) (%_% ymm2) *)
+  0xc5; 0xe5; 0xdb; 0xd9;  (* VPAND (%_% ymm3) (%_% ymm3) (%_% ymm1) *)
+  0xc5; 0xe5; 0xfe; 0x5f; 0x20;
+                           (* VPADDD (%_% ymm3) (%_% ymm3) (Memop Word256 (%% (rdi,32))) *)
+  0xc5; 0xfd; 0x7f; 0x5f; 0x20;
+                           (* VMOVDQA (Memop Word256 (%% (rdi,32))) (%_% ymm3) *)
+  0xc5; 0xed; 0x66; 0x67; 0x40;
+                           (* VPCMPGTD (%_% ymm4) (Memop Word256 (%% (rdi,64))) (%_% ymm2) *)
+  0xc5; 0xdd; 0xdb; 0xe1;  (* VPAND (%_% ymm4) (%_% ymm4) (%_% ymm1) *)
+  0xc5; 0xdd; 0xfe; 0x67; 0x40;
+                           (* VPADDD (%_% ymm4) (%_% ymm4) (Memop Word256 (%% (rdi,64))) *)
+  0xc5; 0xfd; 0x7f; 0x67; 0x40;
+                           (* VMOVDQA (Memop Word256 (%% (rdi,64))) (%_% ymm4) *)
+  0xc5; 0xed; 0x66; 0x6f; 0x60;
+                           (* VPCMPGTD (%_% ymm5) (Memop Word256 (%% (rdi,96))) (%_% ymm2) *)
+  0xc5; 0xd5; 0xdb; 0xe9;  (* VPAND (%_% ymm5) (%_% ymm5) (%_% ymm1) *)
+  0xc5; 0xd5; 0xfe; 0x6f; 0x60;
+                           (* VPADDD (%_% ymm5) (%_% ymm5) (Memop Word256 (%% (rdi,96))) *)
+  0xc5; 0xfd; 0x7f; 0x6f; 0x60;
+                           (* VMOVDQA (Memop Word256 (%% (rdi,96))) (%_% ymm5) *)
+  0x48; 0x81; 0xc7; 0x80; 0x00; 0x00; 0x00;
+                           (* ADD (% rdi) (Imm32 (word 128)) *)
+  0x48; 0x39; 0xf8;        (* CMP (% rax) (% rdi) *)
+  0x75; 0xab               (* JNE (Imm8 (word 171)) *)
+];;
+(*** BYTECODE END ***)
+
+let mldsa_poly_caddq_tmc = CONJUNCT1(CONJUNCT2 (SPEC
+  `mldsa_poly_caddq_mc` BUTLAST_CLAUSES));;
+
+let MLDSA_POLY_CADDQ_EXEC = X86_MK_EXEC_RULE mldsa_poly_caddq_mc;;
+let MLDSA_POLY_CADDQ_TMC_EXEC = X86_MK_EXEC_RULE
+  (REWRITE_RULE [mldsa_poly_caddq_tmc] (SPEC `mldsa_poly_caddq_mc` BUTLAST_CLAUSES));;
+
+(* ------------------------------------------------------------------------- *)
+(* Code length constants                                                     *)
+(* ------------------------------------------------------------------------- *)
+
+let LENGTH_MLDSA_POLY_CADDQ_MC =
+  REWRITE_CONV[mldsa_poly_caddq_mc] `LENGTH mldsa_poly_caddq_mc`
+  |> CONV_RULE (RAND_CONV LENGTH_CONV);;
+
+(* ------------------------------------------------------------------------- *)
+(* Functional specification of caddq32                                       *)
+(* ------------------------------------------------------------------------- *)
+
+(* caddq32: conditional add of Q for negative values
+   Using VPCMPGTD: if 0 > x, mask = 0xFFFFFFFF, else mask = 0.
+   Result = x + (mask AND Q).
+   For inputs in (-Q, Q), this computes x rem Q. *)
+let caddq32 = define
+   `caddq32 (x:int32) =
+      word_add x (word_and (if word_igt (word 0:int32) x
+                            then word 0xffffffff else word 0)
+                           (word 8380417))`;;
+
+let caddq32_direct = prove
+   (`!x:int32.
+      ival(caddq32 x) = if ival x < &0 then ival x + &8380417 else ival x`,
+    REWRITE_TAC[caddq32] THEN BITBLAST_TAC);;
+
+let caddq32_rem = prove
+   (`!x:int32. abs(ival x) < &8380417
+      ==> ival(caddq32 x) = ival x rem &8380417`,
+    REPEAT STRIP_TAC THEN
+    REWRITE_TAC[caddq32_direct] THEN
+    COND_CASES_TAC THENL [
+      ONCE_REWRITE_TAC[EQ_SYM_EQ] THEN
+      REWRITE_TAC[INT_REM_UNIQUE] THEN
+      CONV_TAC INT_REDUCE_CONV THEN
+      CONJ_TAC THENL [ASM_INT_ARITH_TAC; CONV_TAC INTEGER_RULE];
+      MATCH_MP_TAC(GSYM INT_REM_LT) THEN
+      ASM_INT_ARITH_TAC
+    ]);;
+
+(* ------------------------------------------------------------------------- *)
+(* Core correctness theorem                                                  *)
+(* ------------------------------------------------------------------------- *)
+
+let MLDSA_POLY_CADDQ_CORRECT = prove
+ (`!a x pc.
+        nonoverlapping (word pc,LENGTH mldsa_poly_caddq_mc) (a,1024)
+        ==> ensures x86
+             (\s. bytes_loaded s (word pc) (BUTLAST mldsa_poly_caddq_mc) /\
+                  read RIP s = word pc /\
+                  C_ARGUMENTS [a] s /\
+                  (!i. i < 256 ==>
+                     read(memory :> bytes32(word_add a (word(4 * i)))) s = x i) /\
+                  (!i. i < 256 ==> abs(ival(x i)) < &8380417))
+             (\s. read RIP s = word(pc + 114) /\
+                  (!i. i < 256 ==>
+                     ival(read(memory :> bytes32(word_add a (word(4 * i)))) s) =
+                     ival(x i) rem &8380417))
+             (MAYCHANGE [RIP; RAX; RDX; RDI] ,,
+              MAYCHANGE [ZMM0; ZMM1; ZMM2; ZMM3; ZMM4; ZMM5] ,,
+              MAYCHANGE SOME_FLAGS ,,
+              MAYCHANGE [memory :> bytes(a,1024)])`,
+  REWRITE_CONV[LENGTH_MLDSA_POLY_CADDQ_MC] THEN
+  MAP_EVERY X_GEN_TAC [`a:int64`; `x:num->int32`; `pc:num`] THEN
+  REWRITE_TAC[C_ARGUMENTS; NONOVERLAPPING_CLAUSES] THEN
+  DISCH_THEN(REPEAT_TCL CONJUNCTS_THEN ASSUME_TAC) THEN
+
+  CONV_TAC(RATOR_CONV(LAND_CONV(ONCE_DEPTH_CONV
+   (EXPAND_CASES_CONV THENC ONCE_DEPTH_CONV NUM_MULT_CONV)))) THEN
+
+  ENSURES_INIT_TAC "s0" THEN
+
+  MP_TAC(end_itlist CONJ (map (fun n -> READ_MEMORY_MERGE_CONV 2
+            (subst[mk_small_numeral(16*n),`n:num`]
+                  `read (memory :> bytes128(word_add a (word n))) s0`))
+            (0--63))) THEN
+  ASM_REWRITE_TAC[WORD_ADD_0] THEN
+  DISCARD_MATCHING_ASSUMPTIONS [`read (memory :> bytes32 a) s = x`] THEN
+  STRIP_TAC THEN
+
+  MAP_UNTIL_TARGET_PC (fun n ->
+    X86_STEPS_TAC MLDSA_POLY_CADDQ_TMC_EXEC [n] THEN
+    RULE_ASSUM_TAC(CONV_RULE(TOP_DEPTH_CONV WORD_SIMPLE_SUBWORD_CONV THENC ONCE_REWRITE_CONV [GSYM caddq32]))) 1 THEN
+
+  ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
+
+  REPEAT(FIRST_X_ASSUM(STRIP_ASSUME_TAC o
+   CONV_RULE(READ_MEMORY_SPLIT_CONV 2) o
+   check (can (term_match [] `read qqq s:int128 = xxx`) o concl))) THEN
+
+  RULE_ASSUM_TAC (CONV_RULE (RAND_CONV (TOP_DEPTH_CONV WORD_SIMPLE_SUBWORD_CONV))) THEN
+
+  CONV_TAC(EXPAND_CASES_CONV THENC ONCE_DEPTH_CONV NUM_MULT_CONV) THEN
+  ASM_REWRITE_TAC[WORD_ADD_0] THEN
+
+  DISCARD_NONMATCHING_ASSUMPTIONS [`abs (ival t) < &8380417`] THEN
+  REPEAT CONJ_TAC THEN MATCH_MP_TAC caddq32_rem THEN ASM_REWRITE_TAC[]);;
+
+(* ------------------------------------------------------------------------- *)
+(* Subroutine correctness theorem (includes return)                          *)
+(* ------------------------------------------------------------------------- *)
+
+(* NOTE: This must be kept in sync with the CBMC specification
+ * in mldsa/src/native/x86_64/src/arith_native_x86_64.h *)
+
+let MLDSA_POLY_CADDQ_NOIBT_SUBROUTINE_CORRECT = prove
+ (`!a x pc stackpointer returnaddress.
+        nonoverlapping (word pc,LENGTH mldsa_poly_caddq_mc) (a,1024) /\
+        nonoverlapping (stackpointer,8) (a,1024)
+        ==> ensures x86
+             (\s. bytes_loaded s (word pc) mldsa_poly_caddq_mc /\
+                  read RIP s = word pc /\
+                  read RSP s = stackpointer /\
+                  read (memory :> bytes64 stackpointer) s = returnaddress /\
+                  C_ARGUMENTS [a] s /\
+                  (!i. i < 256 ==>
+                     read(memory :> bytes32(word_add a (word(4 * i)))) s = x i) /\
+                  (!i. i < 256 ==> abs(ival(x i)) < &8380417))
+             (\s. read RIP s = returnaddress /\
+                  read RSP s = word_add stackpointer (word 8) /\
+                  (!i. i < 256 ==>
+                     ival(read(memory :> bytes32(word_add a (word(4 * i)))) s) =
+                     ival(x i) rem &8380417))
+             (MAYCHANGE [RSP] ,, MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
+              MAYCHANGE [memory :> bytes(a,1024)])`,
+  X86_PROMOTE_RETURN_NOSTACK_TAC mldsa_poly_caddq_mc MLDSA_POLY_CADDQ_CORRECT);;
+
+let MLDSA_POLY_CADDQ_SUBROUTINE_CORRECT = prove
+ (`!a x pc stackpointer returnaddress.
+        nonoverlapping (word pc,LENGTH mldsa_poly_caddq_mc) (a,1024) /\
+        nonoverlapping (stackpointer,8) (a,1024)
+        ==> ensures x86
+             (\s. bytes_loaded s (word pc) mldsa_poly_caddq_mc /\
+                  read RIP s = word pc /\
+                  read RSP s = stackpointer /\
+                  read (memory :> bytes64 stackpointer) s = returnaddress /\
+                  C_ARGUMENTS [a] s /\
+                  (!i. i < 256 ==>
+                     read(memory :> bytes32(word_add a (word(4 * i)))) s = x i) /\
+                  (!i. i < 256 ==> abs(ival(x i)) < &8380417))
+             (\s. read RIP s = returnaddress /\
+                  read RSP s = word_add stackpointer (word 8) /\
+                  (!i. i < 256 ==>
+                     ival(read(memory :> bytes32(word_add a (word(4 * i)))) s) =
+                     ival(x i) rem &8380417))
+             (MAYCHANGE [RSP] ,, MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
+              MAYCHANGE [memory :> bytes(a,1024)])`,
+  MATCH_ACCEPT_TAC(ADD_IBT_RULE MLDSA_POLY_CADDQ_NOIBT_SUBROUTINE_CORRECT));;
