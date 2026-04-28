@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777358165452,
+  "lastUpdate": 1777358170997,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -392232,6 +392232,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 194329,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "788f45265041d30e6c19251f99f9e8f76665c79f",
+          "message": "check-contracts: Verify CHECK_FUNCTION_CONTRACTS, not just dir name\n\nPreviously the script only checked that a proof directory existed for\neach contract. Now it parses CHECK_FUNCTION_CONTRACTS from each proof's\nMakefile and requires that the matching directory's Makefile actually\nchecks the contract.\n\nA small NAMESPACE_ALIASES table covers the mld_sign_* identifiers,\nwhich are macros expanding to a different symbol.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-28T14:31:08+08:00",
+          "tree_id": "7d666e99fb567fc7f265e355420bd3bdd4388535",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/788f45265041d30e6c19251f99f9e8f76665c79f"
+        },
+        "date": 1777358037926,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 67525,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 203141,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 70512,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 120005,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 331030,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 117640,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 197313,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 428115,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 194056,
             "unit": "cycles"
           }
         ]
