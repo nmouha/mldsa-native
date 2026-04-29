@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777494439848,
+  "lastUpdate": 1777494444627,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -425143,6 +425143,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 374087,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "417b64c1a4c6ab27c7d079fc20c1c59395261148",
+          "message": "CI: Add zig 0.16 compiler tests\n\nAdds a zig-0.16 entry to the compiler matrix, sourced from the\nunstable nixpkgs overlay. zig 0.16 still appears affected on Linux\nby ziglang/zig#23576, so we only test the C backend (matching the\nexisting zig 0.12-0.15 entries).\n\n - Ported from pq-code-package/mlkem-native#1670.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-29T21:21:51+01:00",
+          "tree_id": "d434f4b112f472a4d8701d170d82f54deb01ff07",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/417b64c1a4c6ab27c7d079fc20c1c59395261148"
+        },
+        "date": 1777494439722,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 127962,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 446043,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 142140,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 219909,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 721946,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 223089,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 389100,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 922599,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 373526,
             "unit": "cycles"
           }
         ]
