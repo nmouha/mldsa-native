@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777472865050,
+  "lastUpdate": 1777473027878,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -77616,6 +77616,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 1369985,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "208ebe77158589e7a6e37d216ef53ed2a51b430e",
+          "message": "Make poly_pointwise_montgomery destructive\n\nRework mld_poly_pointwise_montgomery from (c, a, b) to in-place\n(a, b) where a := a * b * R^{-1} mod q. The change propagates through\nthe C wrapper, the native dispatcher, the Arm aarch64 and x86_64 AVX2\nassembly, all call sites, the test harness, and the allocation\nconstants.\n\nThis allows eliminating one temporary polynomial in the the REDUCE_RAM\ndefinition in polymat, and it will also enable further memory optimizations\nin follow-up PRs.\n\nCBMC harnesses are adjusted. HOL Light proofs are updated.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-29T21:57:48+08:00",
+          "tree_id": "6bf0881f9d29486167d9ecf7437409b72dc12baa",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/208ebe77158589e7a6e37d216ef53ed2a51b430e"
+        },
+        "date": 1777473024453,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 459543,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 2133182,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 548413,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 771447,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 3485212,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 850348,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 1247664,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 4313048,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 1369778,
             "unit": "cycles"
           }
         ]
