@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777451084789,
+  "lastUpdate": 1777451097699,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -475854,6 +475854,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 402510,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "30d7382ff24814a530fac1fe5b15e23c88e3caf7",
+          "message": "Refactor: Split polyvec_matrix_pointwise_montgomery into row helper + outer\n\nExtracts the per-row work of mld_polyvec_matrix_pointwise_montgomery into\nnew _row_eager and _row_lazy helpers. The outer becomes a single\nmld_polymat-typed K-loop calling the row helper by contract. Drops the\nlazy/eager outer pair (one outer suffices).\n\nThis vastly improve CBMC proof performance and also allows to share some\nmore code.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-29T16:18:38+08:00",
+          "tree_id": "965f3ea6d5789a053c9cdae8e810d7e601fe0719",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/30d7382ff24814a530fac1fe5b15e23c88e3caf7"
+        },
+        "date": 1777451096644,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 138174,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 482764,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 156414,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 241391,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 787402,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 241073,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 443573,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1007536,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 402468,
             "unit": "cycles"
           }
         ]
