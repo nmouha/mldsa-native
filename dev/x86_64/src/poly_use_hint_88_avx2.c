@@ -39,7 +39,6 @@ void mld_poly_use_hint_88_avx2(int32_t *b, const int32_t *a,
 {
   unsigned int i;
   __m256i f, f0, f1, h, t;
-  const __m256i q_bound = _mm256_set1_epi32(87 * ((MLDSA_Q - 1) / 88));
   /* check-magic: 11275 == floor(2**24 / 1488) */
   const __m256i v = _mm256_set1_epi32(11275);
   const __m256i alpha = _mm256_set1_epi32(2 * ((MLDSA_Q - 1) / 88));
@@ -63,11 +62,8 @@ void mld_poly_use_hint_88_avx2(int32_t *b, const int32_t *a,
     f1 = _mm256_srli_epi32(f1, 7);
     f1 = _mm256_mulhi_epu16(f1, v);
     f1 = _mm256_mulhrs_epi16(f1, shift);
-    t = _mm256_cmpgt_epi32(f, q_bound);
     f0 = _mm256_mullo_epi32(f1, alpha);
     f0 = _mm256_sub_epi32(f, f0);
-    f1 = _mm256_andnot_si256(t, f1);
-    f0 = _mm256_add_epi32(f0, t);
 
     /* Reference: The reference avx2 implementation checks a0 >= 0, which is
      * different from the specification and the reference C implementation. We

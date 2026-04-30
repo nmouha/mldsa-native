@@ -21,9 +21,6 @@ MLD_ASM_FN_SYMBOL(poly_use_hint_32_asm)
         mov w4, #0xe001             // =57345
         movk w4, #0x7f, lsl #16
         dup v20.4s, w4
-        mov w5, #0xe100             // =57600
-        movk w5, #0x7b, lsl #16
-        dup v21.4s, w5
         mov w7, #0xfe00             // =65024
         movk w7, #0x7, lsl #16
         dup v22.4s, w7
@@ -44,40 +41,28 @@ Lpoly_use_hint_32_loop:
         ldr q4, [x2], #0x40
         sqdmulh v17.4s, v1.4s, v23.4s
         srshr v17.4s, v17.4s, #0x12
-        cmgt v25.4s, v1.4s, v21.4s
         mls v1.4s, v17.4s, v22.4s
-        bic v17.16b, v17.16b, v25.16b
-        add v1.4s, v1.4s, v25.4s
         cmle v1.4s, v1.4s, #0
         orr v1.4s, #0x1
         mla v17.4s, v1.4s, v5.4s
         and v17.16b, v17.16b, v24.16b
         sqdmulh v18.4s, v2.4s, v23.4s
         srshr v18.4s, v18.4s, #0x12
-        cmgt v25.4s, v2.4s, v21.4s
         mls v2.4s, v18.4s, v22.4s
-        bic v18.16b, v18.16b, v25.16b
-        add v2.4s, v2.4s, v25.4s
         cmle v2.4s, v2.4s, #0
         orr v2.4s, #0x1
         mla v18.4s, v2.4s, v6.4s
         and v18.16b, v18.16b, v24.16b
         sqdmulh v19.4s, v3.4s, v23.4s
         srshr v19.4s, v19.4s, #0x12
-        cmgt v25.4s, v3.4s, v21.4s
         mls v3.4s, v19.4s, v22.4s
-        bic v19.16b, v19.16b, v25.16b
-        add v3.4s, v3.4s, v25.4s
         cmle v3.4s, v3.4s, #0
         orr v3.4s, #0x1
         mla v19.4s, v3.4s, v7.4s
         and v19.16b, v19.16b, v24.16b
         sqdmulh v16.4s, v0.4s, v23.4s
         srshr v16.4s, v16.4s, #0x12
-        cmgt v25.4s, v0.4s, v21.4s
         mls v0.4s, v16.4s, v22.4s
-        bic v16.16b, v16.16b, v25.16b
-        add v0.4s, v0.4s, v25.4s
         cmle v0.4s, v0.4s, #0
         orr v0.4s, #0x1
         mla v16.4s, v0.4s, v4.4s

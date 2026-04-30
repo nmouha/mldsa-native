@@ -9,7 +9,7 @@
 /* simpasm: header-end */
 
 // a aliased with a0
-.macro decompose32 a1, a, temp
+.macro decompose32 a1, a
         // Compute a1 = round-(a / 523776) ≈ round(a * 1074791425 /
         // 2^49), where round-() denotes "round half down". This is
         // exact for 0 <= a < Q. Note that half is rounded down since
@@ -17,24 +17,13 @@
         sqdmulh \a1\().4s, \a\().4s, barrett_const.4s
         srshr \a1\().4s, \a1\().4s, #18
 
-        // If a1 = 16, i.e. a > 31*GAMMA2, proceed as if a' = a - Q was
-        // given instead. (For a = 31*GAMMA2 + 1 thus a' = -GAMMA2, we
-        // still round it to 0 like other "wrapped around" cases.)
-
-        // Check for wrap-around
-        cmgt \temp\().4s, \a\().4s, q_bound.4s
-
         // Compute remainder a0
         mls \a\().4s, \a1\().4s, gamma2_2x.4s
-
-        // If wrap-around is required, set a1 = 0 and a0 -= 1
-        bic \a1\().16b, \a1\().16b, \temp\().16b
-        add \a\().4s, \a\().4s, \temp\().4s
 .endm
 
 // a aliased with delta
-.macro use_hint32 b, a, h, temp
-        decompose32 \b, \a, \temp
+.macro use_hint32 b, a, h
+        decompose32 \b, \a
 
         // delta = (a0 <= 0) ? -1 : 1
         cmle \a\().4s, \a\().4s, #0
@@ -54,7 +43,6 @@
 
         /* Constant register assignments */
         q               .req v20    // Q = 8380417
-        q_bound         .req v21    // 31*GAMMA2 = 8118528
         gamma2_2x       .req v22    // 2*GAMMA2 = 523776
         barrett_const   .req v23    // Barrett constant = 1074791425
         mask_15         .req v24    // mask = 15
@@ -67,10 +55,6 @@ MLD_ASM_FN_SYMBOL(poly_use_hint_32_asm)
         movz w4, #57345
         movk w4, #127, lsl #16
         dup q.4s, w4
-
-        movz w5, #0xe100
-        movk w5, #0x7b, lsl #16
-        dup q_bound.4s, w5
 
         movz w7, #0xfe00
         movk w7, #7, lsl #16
@@ -95,10 +79,10 @@ poly_use_hint_32_loop:
         ldr q7, [h_ptr, #3*16]
         ldr q4, [h_ptr], #4*16
 
-        use_hint32 v17, v1, v5, v25
-        use_hint32 v18, v2, v6, v25
-        use_hint32 v19, v3, v7, v25
-        use_hint32 v16, v0, v4, v25
+        use_hint32 v17, v1, v5
+        use_hint32 v18, v2, v6
+        use_hint32 v19, v3, v7
+        use_hint32 v16, v0, v4
 
         str q17, [b_ptr, #1*16]
         str q18, [b_ptr, #2*16]
@@ -115,7 +99,6 @@ poly_use_hint_32_loop:
         .unreq h_ptr
         .unreq count
         .unreq q
-        .unreq q_bound
         .unreq gamma2_2x
         .unreq barrett_const
         .unreq mask_15
