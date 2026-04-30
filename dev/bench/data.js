@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777559475934,
+  "lastUpdate": 1777559481923,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -508489,6 +508489,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 320301,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "34ce534111eb9b889d33b5884052c6f0949bb5be",
+          "message": "x86_64: Fix wrong qbound 87*q -> 31*q in use_hint_32\n\nuse_hint_32 in the AVX2 backend contains a wrong constant\nthat was copied from use_hint_88.\nThis disabled the check if w1=16 after the decompose step.\nLuckily, this cancels out later on in the use_hint for\nnon-trivial reasons. We have also exhaustively tested that\nthis code produces correct results for all inputs.\n\nWe will be able to optimize this away in a follow-up commit.\nFor now, this commit just corrects the constant to avoid confusion.\n\n- Fixes https://github.com/pq-code-package/mldsa-native/issues/1074\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-04-30T22:25:24+08:00",
+          "tree_id": "443472cddf69a74b63818e25b152a87a721c3957",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/34ce534111eb9b889d33b5884052c6f0949bb5be"
+        },
+        "date": 1777559349189,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 112520,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 357463,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 118050,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 195390,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 589747,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 194817,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 321387,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 756036,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 320397,
             "unit": "cycles"
           }
         ]
