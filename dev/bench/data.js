@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777495736706,
+  "lastUpdate": 1777555308460,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -609911,6 +609911,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 130040,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "rodchap@amazon.com",
+            "name": "Rod Chapman",
+            "username": "rod-chapman"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "64067ca5f252367d518f58b1c1380bd095e35562",
+          "message": "Correct size of rnd buffer for CT testing.\n\nSigned-off-by: Rod Chapman <rodchap@amazon.com>",
+          "timestamp": "2026-04-30T14:20:33+01:00",
+          "tree_id": "7e98813b43dc242c46995ea5eb354cc13dad2721",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/64067ca5f252367d518f58b1c1380bd095e35562"
+        },
+        "date": 1777555271355,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 46598,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 132244,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 47616,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 81822,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 216895,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 79842,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 132927,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 279237,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 130044,
             "unit": "cycles"
           }
         ]
