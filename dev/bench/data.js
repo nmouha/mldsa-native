@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777727946798,
+  "lastUpdate": 1777727965226,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -405204,6 +405204,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 194126,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "a0e085e1dc902d0a890a1a9287ff5ae34e1cccb6",
+          "message": "CBMC: Auto-derive lazy/eager suffix in proof Makefiles\n\nAdd a LAZY_EAGER_FUNCTIONS list to Makefile.common that automatically\nappends _lazy or _eager to USE_FUNCTION_CONTRACTS and\nCHECK_FUNCTION_CONTRACTS entries based on MLD_CONFIG_REDUCE_RAM.\n\nThis allows proof Makefiles to use base function names (e.g.,\nmld_polyvec_matrix_pointwise_montgomery) instead of repeating\nifdef/else/endif blocks for each lazy/eager variant.\n\nSigned-off-by: Hanno Becker <beckphan@amazon.co.uk>",
+          "timestamp": "2026-05-02T21:14:19+08:00",
+          "tree_id": "e5fc2a5fc229574374733d8bf66c5690eb8b299b",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/a0e085e1dc902d0a890a1a9287ff5ae34e1cccb6"
+        },
+        "date": 1777727819554,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 67509,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 203728,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 70600,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 120103,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 331472,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 117571,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 197278,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 428808,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 194109,
             "unit": "cycles"
           }
         ]
