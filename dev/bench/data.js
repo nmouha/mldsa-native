@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777731428313,
+  "lastUpdate": 1777731446523,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -215468,6 +215468,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 195318,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "29e96b9181b3433c1ac10e1465303ab70d8defa6",
+          "message": "Test: Use Wycheproof signing tests to validate pk_from_sk\n\nAdd a pkFromSk command to the Wycheproof C driver and a corresponding\ntest runner in the Python client. This runs pk_from_sk on every test\ngroup from the noseed signing tests:\n\n- InvalidPrivateKey: assert pk_from_sk rejects (non-zero exit)\n- IncorrectPrivateKeyLength: assert decode_error from the driver\n- Valid SK: assert pk_from_sk succeeds and derived PK matches expected\n\nAlso tighten check_sign_result to assert the exact expected failure\nmode per flag, rather than accepting any error. Unrecognised invalid\nflags now fail loudly.\n\nResolves #1078.\n\nSigned-off-by: Hanno Becker <beckphan@amazon.co.uk>",
+          "timestamp": "2026-05-02T22:12:43+08:00",
+          "tree_id": "ddaae85883581208433c5b08983df2d758b61ea6",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/29e96b9181b3433c1ac10e1465303ab70d8defa6"
+        },
+        "date": 1777731313492,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 68357,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 188483,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 69110,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 118902,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 301770,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 115427,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 202356,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 395918,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 195179,
             "unit": "cycles"
           }
         ]
