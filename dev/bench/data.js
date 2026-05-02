@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777712564841,
+  "lastUpdate": 1777712569897,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -159513,6 +159513,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 616619,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jakemas@amazon.com",
+            "name": "Jake Massimo",
+            "username": "jakemas"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "3c591cf87147203e751a9c6d82f59ba28d7385fe",
+          "message": "Add HOL Light poly_use_hint proofs for AArch64 with FIPS 204 specs\n\nAdd formal verification proofs for poly_use_hint_32 and poly_use_hint_88\nAArch64 NEON implementations using HOL Light.\n\nEach proof file contains:\n- Assembly-level functional correctness\n- Subroutine correctness with code-aligned spec\n- Constant-time and memory safety\n- FIPS 204 equivalence proof via Barrett interval cascade\n- FIPS 204-aligned subroutine correctness\n\nFIPS 204 definitions (mldsa_cmod, mldsa_decompose, mldsa_use_hint) and\nshared helpers (DIV_SANDWICH, INT_MOD_RESIDUE) are in mldsa_specs.ml.\nENSURES_STRENGTHEN_POST lives in aarch64_utils.ml.\n\nThe public SUBROUTINE_CORRECT theorem in each proof uses the FIPS 204\nspec mldsa_use_hint_{32,88} in its postcondition and carries the output\nbound (< 16 or < 44) as a corollary. Code-aligned intermediates use\n*_CODE suffixes to mark them internal.\n\nSigned-off-by: Jake Massimo <jakemas@amazon.com>",
+          "timestamp": "2026-05-02T09:56:29+01:00",
+          "tree_id": "80213aec2bcdb2c09b4b7053822edbaa70468ab2",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/3c591cf87147203e751a9c6d82f59ba28d7385fe"
+        },
+        "date": 1777712557946,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 211787,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 759488,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 228658,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 378224,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 1245635,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 371051,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 603682,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1585199,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 616485,
             "unit": "cycles"
           }
         ]
