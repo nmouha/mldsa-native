@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777746391288,
+  "lastUpdate": 1777746396532,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -298055,6 +298055,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 112678,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "377974e4259b28235a5291e3611a0465f652ebdb",
+          "message": "Lint: Ignore NIST publications in markdown-link-check\n\nhttp://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf has repeatedly caused\nerrors in CI due to not being available.\nThis commit adds it to the ignore list.\n\nWhile at it, this also copies the\n\"^https://github\\\\.com/pq-code-package/mldsa-native/compare/.*\\\\.\\\\.\\\\.v\"\nexception from mlkem-native which allows us to reference a release diff before\nthe corresponding tag has been created.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-02T19:21:16+01:00",
+          "tree_id": "8217abf6f96804ff64e320e5891a39a800e98b7b",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/377974e4259b28235a5291e3611a0465f652ebdb"
+        },
+        "date": 1777746269000,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 41003,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 133397,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 44188,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 71390,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 213792,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 72821,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 112083,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 250574,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 110486,
             "unit": "cycles"
           }
         ]
