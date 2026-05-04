@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777886334139,
+  "lastUpdate": 1777886494733,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -80238,6 +80238,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 1368274,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "4ba958011289f0407acbe6572b379501492616b1",
+          "message": "Lowram: Share buffers with non-overlapping lifetimes in verify\n\nIn mld_sign_verify_internal, introduce two unions to share buffers\nwith non-overlapping lifetimes:\n\n- zcp_u: shares z (matrix-vector input) with cp (challenge polynomial),\n  since z is dead after the matrix-vector multiplication.\n- reuse_u: shares mat, t1 and h. mat dies after matrix-vector mult,\n  t1 (re-unpacked into the same slot) dies after polyveck_sub, and h\n  (unpacked late) lives only from then through pack_w1.\n\nReplace mld_unpack_sig with explicit memcpy of c, mld_polyvecl_unpack_z\nand a deferred mld_unpack_hints, so the hint vector is unpacked only\nafter the matrix-vector / t1 buffers are no longer needed.\n\nCBMC proofs are adjusted.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-04T16:27:10+08:00",
+          "tree_id": "54675640bc8f754987175bf7eed83012aa8cd7d0",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/4ba958011289f0407acbe6572b379501492616b1"
+        },
+        "date": 1777886491197,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 464964,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 2146354,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 549869,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 778960,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 3496370,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 852675,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 1253785,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 4328710,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 1370510,
             "unit": "cycles"
           }
         ]
