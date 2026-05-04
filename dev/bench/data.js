@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777931269381,
+  "lastUpdate": 1777931295038,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -134675,6 +134675,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 322172,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "35ca99c587a94441c101e1a4b2c553e192404a01",
+          "message": "sign: Use MLD_ALLOC for secret seed/rnd buffers in sign.c\n\nConvert the stack-allocated rnd/seed buffers in the public sign API\nwrappers to MLD_ALLOC so that consumers using a custom allocator\n(MLD_CONFIG_CUSTOM_ALLOC_FREE) place RNG-derived secret material\nthrough the same allocation path.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-04T22:45:56+01:00",
+          "tree_id": "60d9fd5dfc1d5c21e222d04535403cfeafe6c345",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/35ca99c587a94441c101e1a4b2c553e192404a01"
+        },
+        "date": 1777931293396,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 113034,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 401716,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 120618,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 193669,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 651338,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 193278,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 319793,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 830604,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 322171,
             "unit": "cycles"
           }
         ]
