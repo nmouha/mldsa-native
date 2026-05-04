@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1777917097562,
+  "lastUpdate": 1777917121791,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -412449,6 +412449,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 193117,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "ae853047444a61dcac62d3a94961736be197d7db",
+          "message": "HOL-Light: Prefix imports to separate mldsa-native from s2n-bignum\n\nIssue: every `needs` directive in mldsa-native proof files resolved\nambiguously against both $PROOF_DIR and $S2N_BIGNUM_DIR, so a file with\nthe same relative path in either tree could silently shadow the other.\n\nProposed resolution: Every import now declares its source at the\ncall site with a namespace prefix.\n\n  needs \"mldsa_native/common/mldsa_specs.ml\";;   (* local *)\n  needs \"s2n_bignum/arm/proofs/base.ml\";;        (* external *)\n  needs \"Library/words.ml\";;                     (* HOL-Light stdlib *)\n\nThe nix shellHook creates a temporary .imports directory with symlinks\n`mldsa_native` and `s2n_bignum` pointing to the local resp. s2n-bignum\ndirectories, and HOLLIGHT_LOAD_PATH points at that import directory.\nThe `mldsa_native/` and `s2n_bignum/` namespaces are disjoint by prefix,\nso path collisions become structurally impossible.\n\nA new scripts/check-hol-light-imports enforces the rule across\nproofs/hol_light/**/*.ml and is wired into scripts/lint and both\nbuild-proof.sh scripts. s2n-bignum imports must additionally\nappear on proofs/hol_light/s2n_bignum_allowlist.txt, so new cross-repo\ndependencies surface in review.\n\nA side-benefit of exposing proofs/hol_light/.imports is that it is easier\nto navigate to the nix-imported s2n-bignum sources for inspection.\n\nSigned-off-by: Hanno Becker <beckphan@amazon.co.uk>",
+          "timestamp": "2026-05-04T18:46:45+01:00",
+          "tree_id": "24b83b6f36de25b30467ae7fb8e48684a3bc742b",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/ae853047444a61dcac62d3a94961736be197d7db"
+        },
+        "date": 1777916966767,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 67610,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 203420,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 70423,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 120280,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 331388,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 116892,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 197299,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 428729,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 193177,
             "unit": "cycles"
           }
         ]
