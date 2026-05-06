@@ -24,13 +24,13 @@ PROJECT_SOURCES += $(SRCDIR)/mldsa/src/poly_kl.c
 # ML-DSA-44 and ML-DSA-87 use eta=2; ML-DSA-65 uses eta=4.
 ifeq ($(MLD_CONFIG_PARAMETER_SET),44)
     CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_native
-    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_asm
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_aarch64_asm
 else ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
     CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_native
-    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_asm
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_aarch64_asm
 else ifeq ($(MLD_CONFIG_PARAMETER_SET),87)
     CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_native
-    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_asm
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_aarch64_asm
 endif
 USE_FUNCTION_CONTRACTS += mld_sys_check_capability
 APPLY_LOOP_CONTRACTS=on
