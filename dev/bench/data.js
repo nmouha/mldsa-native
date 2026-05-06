@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778061701874,
+  "lastUpdate": 1778061860861,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -81675,6 +81675,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 1372722,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "bad14c2b17164eb2be5c7374eea5a0c7f21fdb29",
+          "message": "hol_light: Consolidate per-arch README into top-level\n\nDrop proofs/hol_light/x86_64/README.md, which duplicated the proofs\nlisting and reproducing instructions from the top-level README and was\nalready drifting (missing pointwise and pointwise_acc_l4/l5/l7).\nMove its unique content (Primer with example spec, Platform\nCompatibility) into the top-level README, matching mlkem-native's\nstructure.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-06T17:23:44+08:00",
+          "tree_id": "4dacaa082fc00b00089df3e5f1c3c20373779919",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/bad14c2b17164eb2be5c7374eea5a0c7f21fdb29"
+        },
+        "date": 1778061857352,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 461617,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 2130245,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 550859,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 774645,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 3473607,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 857637,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 1247570,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 4277135,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 1371400,
             "unit": "cycles"
           }
         ]
