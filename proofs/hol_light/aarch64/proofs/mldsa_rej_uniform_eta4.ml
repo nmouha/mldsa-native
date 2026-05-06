@@ -16,8 +16,8 @@
 (* to sidestep the fact that TBL trailing bytes leave garbage on stack.     *)
 (* ========================================================================= *)
 
-needs "arm/proofs/base.ml";;
-needs "aarch64/proofs/mldsa_rej_uniform_eta_table.ml";;
+needs "s2n_bignum/arm/proofs/base.ml";;
+needs "mldsa_native/aarch64/proofs/mldsa_rej_uniform_eta_table.ml";;
 
 (**** print_literal_from_elf "aarch64/mldsa/mldsa_rej_uniform_eta4.o";;
  ****)
