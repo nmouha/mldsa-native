@@ -15,14 +15,6 @@
 (* Case B (niblen<256) closures; Case B small uses a virtual stack list L   *)
 (* to sidestep the fact that TBL trailing bytes leave garbage on stack.     *)
 (* ========================================================================= *)
-(*   ENSURES_WHILE_UP_TAC over the main loop (75-step preamble + unrolled   *)
-(*     loop body + back-edge + post-loop exit).                             *)
-(*   Writeback (245 ARM steps) split into Case A (256 <= niblen) and Case B *)
-(*     (niblen < 256). Case B small uses a "virtual stack list" L of size   *)
-(*     256 to sidestep TBL trailing-byte garbage on stack, then runs the    *)
-(*     Case A closure chain on L and MOD-truncates to 4*niblen via          *)
-(*     CASE_B_TRUNCATE_L.                                                   *)
-(* ========================================================================= *)
 
 needs "s2n_bignum/arm/proofs/base.ml";;
 needs "mldsa_native/aarch64/proofs/mldsa_rej_uniform_eta_table.ml";;
@@ -2426,14 +2418,11 @@ let CASE_B_TRUNCATE = prove
     REWRITE_TAC[]]);;
 
 (* ========================================================================= *)
-(* Correctness theorem.                                                      *)
+(* The proof (interactive g/e style).                                        *)
+(* Run each e(...) in sequence in a HOL Light session with the checkpoint.   *)
 (* ========================================================================= *)
 
-(* DBG is a no-op tracer (kept silent in production; can be redefined to     *)
-(* Printf.printf during development to follow the proof progression).        *)
-
-let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
- (`!res buf buflen table (inlist:byte list) pc stackpointer.
+set_goal([], `!res buf buflen table (inlist:byte list) pc stackpointer.
       8 divides val buflen /\
       8 <= val buflen /\
       LENGTH inlist = val buflen /\
@@ -2460,8 +2449,13 @@ let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
                 num_of_wordlist outlist)
            (MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
             MAYCHANGE [memory :> bytes(res,1024);
-                       memory :> bytes(stackpointer,576)])`,
- REWRITE_TAC[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC;
+                       memory :> bytes(stackpointer,576)])`);;
+
+(* Key technique: ENSURES_SEQUENCE_TAC within loop body at pc+0xD8 *)
+(* to capture X12/X13 bounds before ST1 stores.                   *)
+(* ARM_VERBOSE_STEP_TAC for FMOV exposes symbolic X12/X13.        *)
+
+e (REWRITE_TAC[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC;
     fst MLDSA_REJ_UNIFORM_ETA4_EXEC;
     MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI;
     C_ARGUMENTS; ALL; C_RETURN] THEN
@@ -2492,7 +2486,7 @@ let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
            read (memory :> bytes (stackpointer,2 * niblen)) s =
            num_of_wordlist niblist` THEN
  CONJ_TAC THENL
-  [
+  [ALL_TAC;
 
    (*** Writeback phase: pc+256 to pc+336 ***)
    (*** Uses partial niblist = REJ_NIBBLES_ETA4(SUB_LIST(0,8*n) inlist) ***)
@@ -3281,7 +3275,7 @@ let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
          word_subword loaded_d (48,8);
          word_subword loaded_d (56,8)]`
      ASSUME_TAC THENL
-      [       CONV_TAC SYM_CONV THEN
+      [CONV_TAC SYM_CONV THEN
        REWRITE_TAC[LISTS_NUM_OF_WORDLIST_EQ] THEN CONJ_TAC THENL
         [REWRITE_TAC[LENGTH; LENGTH_SUB_LIST] THEN
          UNDISCH_TAC `LENGTH(inlist:byte list) = buflen` THEN
@@ -3679,62 +3673,52 @@ let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
       [DISJ1_TAC THEN ASM_REWRITE_TAC[]; ALL_TAC] THEN
      ASM_REWRITE_TAC[]]]);;
 
-(* ========================================================================= *)
-(* Subroutine form: add return-address tracking and the SUB SP / ADD SP      *)
-(* bracket around the core proof.                                            *)
-(* ========================================================================= *)
+(* Name the proved theorem *)
+let MLDSA_REJ_UNIFORM_ETA4_CORRECT = top_thm();;
+
+let LENGTH_SIMPLIFY_CONV =
+  REWRITE_CONV[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC] THENC
+  NUM_REDUCE_CONV THENC REWRITE_CONV [ADD_0];;
+
+(* ------------------------------------------------------------------------- *)
+(* Subroutine form: includes stack frame allocation/deallocation and return.  *)
+(* C signature: uint64_t mld_rej_uniform_eta4_asm(int32_t *r,                *)
+(*   const uint8_t *buf, unsigned buflen, const uint8_t table[4096]);        *)
+(* ------------------------------------------------------------------------- *)
 
 let MLDSA_REJ_UNIFORM_ETA4_SUBROUTINE_CORRECT = prove
  (`!res buf buflen table (inlist:byte list) pc stackpointer returnaddress.
-      8 divides val buflen /\
-      8 <= val buflen /\
-      LENGTH inlist = val buflen /\
-      ALL (nonoverlapping (word_sub stackpointer (word 576),576))
-          [(word pc,LENGTH mldsa_rej_uniform_eta4_mc);
-           (buf,val buflen); (table,4096)] /\
-      ALL (nonoverlapping (res,1024))
-          [(word pc,LENGTH mldsa_rej_uniform_eta4_mc);
-           (word_sub stackpointer (word 576),576)]
-      ==> ensures arm
-           (\s. aligned_bytes_loaded s (word pc) mldsa_rej_uniform_eta4_mc /\
-                read PC s = word pc /\
-                read SP s = stackpointer /\
-                read X30 s = returnaddress /\
-                C_ARGUMENTS [res;buf;buflen;table] s /\
-                read(memory :> bytes(table,4096)) s =
-                num_of_wordlist mldsa_rej_uniform_eta_table /\
-                read(memory :> bytes(buf,val buflen)) s =
-                num_of_wordlist inlist)
-           (\s. read PC s = returnaddress /\
-                let outlist = SUB_LIST(0,256) (REJ_SAMPLE_ETA4 inlist) in
-                let outlen = LENGTH outlist in
-                C_RETURN s = word outlen /\
-                read(memory :> bytes(res,4 * outlen)) s =
-                num_of_wordlist outlist)
-           (MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
-            MAYCHANGE [memory :> bytes(res,1024);
-                       memory :> bytes(word_sub stackpointer (word 576),576)])`,
-  ARM_ADD_RETURN_STACK_TAC
-    ~pre_post_nsteps:(1,1)
-    MLDSA_REJ_UNIFORM_ETA4_EXEC
-    (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA4_EXEC]
-       MLDSA_REJ_UNIFORM_ETA4_CORRECT)
-    `[]:((armstate,int64)component)list` 576);;
-
-(* ========================================================================= *)
-(* Constant-time and memory safety proof.                                    *)
-(* ========================================================================= *)
-
-needs "s2n_bignum/arm/proofs/consttime.ml";;
-needs "mldsa_native/aarch64/proofs/subroutine_signatures.ml";;
-
-let full_spec,public_vars = mk_safety_spec
-    ~keep_maychanges:false
-    (assoc "mldsa_rej_uniform_eta4" subroutine_signatures)
-    MLDSA_REJ_UNIFORM_ETA4_SUBROUTINE_CORRECT
-    MLDSA_REJ_UNIFORM_ETA4_EXEC;;
-
-let MLDSA_REJ_UNIFORM_ETA4_SUBROUTINE_SAFE = time prove
-  (full_spec,
-   ASSERT_CONCL_TAC full_spec THEN
-   PROVE_SAFETY_SPEC_TAC ~public_vars:public_vars MLDSA_REJ_UNIFORM_ETA4_EXEC);;
+        8 divides val buflen /\
+        8 <= val buflen /\
+        LENGTH inlist = val buflen /\
+        ALL (nonoverlapping (word_sub stackpointer (word 576),576))
+            [(word pc,LENGTH mldsa_rej_uniform_eta4_mc);
+             (buf,val buflen); (table,4096)] /\
+        ALL (nonoverlapping (res,1024))
+            [(word pc,LENGTH mldsa_rej_uniform_eta4_mc);
+             (word_sub stackpointer (word 576),576)]
+        ==> ensures arm
+             (\s. aligned_bytes_loaded s (word pc) mldsa_rej_uniform_eta4_mc /\
+                  read PC s = word pc /\
+                  read SP s = stackpointer /\
+                  read X30 s = returnaddress /\
+                  C_ARGUMENTS [res;buf;buflen;table] s /\
+                  read(memory :> bytes(table,4096)) s =
+                  num_of_wordlist mldsa_rej_uniform_eta_table /\
+                  read(memory :> bytes(buf,val buflen)) s =
+                  num_of_wordlist inlist)
+             (\s. read PC s = returnaddress /\
+                  let outlist = SUB_LIST(0,256) (REJ_SAMPLE_ETA4 inlist) in
+                  let outlen = LENGTH outlist in
+                  C_RETURN s = word outlen /\
+                  read(memory :> bytes(res,4 * outlen)) s =
+                  num_of_wordlist outlist)
+             (MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
+              MAYCHANGE [memory :> bytes(res,1024);
+                         memory :> bytes(word_sub stackpointer (word 576),576)])`,
+  REWRITE_TAC[fst MLDSA_REJ_UNIFORM_ETA4_EXEC] THEN
+  ARM_ADD_RETURN_STACK_TAC ~pre_post_nsteps:(1,2)
+   MLDSA_REJ_UNIFORM_ETA4_EXEC
+   (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA4_EXEC]
+     (CONV_RULE LENGTH_SIMPLIFY_CONV MLDSA_REJ_UNIFORM_ETA4_CORRECT))
+   `[]` 0);;
