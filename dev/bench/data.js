@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778064083232,
+  "lastUpdate": 1778064288318,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -585474,6 +585474,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 770139,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "0423f1d252b4a8d1847fec2fa14ace890eb6046d",
+          "message": "sign: Add MLD_CONFIG_MAX_SIGNING_ATTEMPTS and dedicated error code\n\nIntroduce a new configuration option, MLD_CONFIG_MAX_SIGNING_ATTEMPTS,\nthat bounds the number of rejection-sampling iterations performed by\nthe ML-DSA signing routine (FIPS 204, Algorithm 7). This is useful in\ntiming-sensitive environments that require a deterministic worst-case\nbound on signing time.\n\nThe default is the maximum value before non-overflow -- practically\ninfinite. A compile-time check rejects values below the FIPS 204\nAppendix C minimum of 814 (at which exhaustion has probability < 2^-256).\n\nWhen the bound is reached, signing now returns a dedicated error code\nMLD_ERR_SIGN_ATTEMPTS_EXHAUSTED instead of the generic MLD_ERR_FAIL.\nCBMC specifications and documentation for all signing entry points\nare adjusted accordingly. The PCT path (mld_check_pct) and keypair\ncontracts are also updated because the new code can propagate\nthrough MLD_CONFIG_KEYGEN_PCT.\n\nAlso, add a test configuration (low_signing_bound_config.h) that sets\nthe bound to 1, and update test_mldsa.c to tolerate\nMLD_ERR_SIGN_ATTEMPTS_EXHAUSTED when MLD_ALLOW_NONCOMPLIANT_SIGNING_BOUND\nis defined, printing a summary of exhausted signing calls at the end.\nAdd a CI step that exercises this configuration and verifies the error\npath is triggered.\n\nFinally, to keep the CBMC proofs independent of a specific signing threshold,\nintroduce mld_get_max_signing_attempts() with a contract providing\nonly the range [1, MLD_NONCE_UB], so CBMC proofs stay agnostic of\nthe exact configured value. Add cassert(0) to prevent inlining during\nverification. Add the function to USE_FUNCTION_CONTRACTS in the\nsign_signature_internal proof, and to the check-contracts exception list.\n\nSigned-off-by: Hanno Becker <beckphan@amazon.co.uk>",
+          "timestamp": "2026-05-06T11:23:42+01:00",
+          "tree_id": "21019d91cf9107e59a7674f26a4f776ffafb9bcf",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/0423f1d252b4a8d1847fec2fa14ace890eb6046d"
+        },
+        "date": 1778064284295,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 272904,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 825033,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 277098,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 470288,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 1333490,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 452317,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 805837,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1873666,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 779486,
             "unit": "cycles"
           }
         ]
