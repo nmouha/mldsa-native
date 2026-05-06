@@ -4,11 +4,11 @@
 include ../Makefile_params.common
 
 HARNESS_ENTRY = harness
-HARNESS_FILE = rej_uniform_eta4_native_aarch64_harness
+HARNESS_FILE = rej_uniform_eta_native_aarch64_harness
 
 # This should be a unique identifier for this proof, and will appear on the
 # Litani dashboard. It can be human-readable and contain spaces if you wish.
-PROOF_UID = rej_uniform_eta4_native_aarch64
+PROOF_UID = rej_uniform_eta_native_aarch64
 
 # We need to set MLD_CHECK_APIS as otherwise mldsa/src/native/api.h won't be
 # included, which contains the CBMC specifications.
@@ -21,8 +21,17 @@ UNWINDSET +=
 PROOF_SOURCES += $(PROOFDIR)/$(HARNESS_FILE).c
 PROJECT_SOURCES += $(SRCDIR)/mldsa/src/poly_kl.c
 
-CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_native
-USE_FUNCTION_CONTRACTS = mld_rej_uniform_eta4_asm
+# ML-DSA-44 and ML-DSA-87 use eta=2; ML-DSA-65 uses eta=4.
+ifeq ($(MLD_CONFIG_PARAMETER_SET),44)
+    CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_native
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_asm
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),65)
+    CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_native
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta4_asm
+else ifeq ($(MLD_CONFIG_PARAMETER_SET),87)
+    CHECK_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_native
+    USE_FUNCTION_CONTRACTS=mld_rej_uniform_eta2_asm
+endif
 USE_FUNCTION_CONTRACTS += mld_sys_check_capability
 APPLY_LOOP_CONTRACTS=on
 USE_DYNAMIC_FRAMES=1
@@ -31,7 +40,7 @@ USE_DYNAMIC_FRAMES=1
 EXTERNAL_SAT_SOLVER=
 CBMCFLAGS=--bitwuzla
 
-FUNCTION_NAME = rej_uniform_eta4_native_aarch64
+FUNCTION_NAME = rej_uniform_eta_native_aarch64
 
 # If this proof is found to consume huge amounts of RAM, you can set the
 # EXPENSIVE variable. With new enough versions of the proof tools, this will
