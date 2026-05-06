@@ -586,9 +586,27 @@ let MLDSA_REJ_UNIFORM_ETA2_SUBROUTINE_CORRECT = prove
              (MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
               MAYCHANGE [memory :> bytes(res,1024);
                          memory :> bytes(word_sub stackpointer (word 576),576)])`,
-  REWRITE_TAC[fst MLDSA_REJ_UNIFORM_ETA2_EXEC] THEN
-  ARM_ADD_RETURN_STACK_TAC ~pre_post_nsteps:(1,2)
-   MLDSA_REJ_UNIFORM_ETA2_EXEC
-   (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA2_EXEC]
-     (CONV_RULE LENGTH_SIMPLIFY_CONV MLDSA_REJ_UNIFORM_ETA2_CORRECT))
-   `[]` 0);;
+  ARM_ADD_RETURN_STACK_TAC
+    ~pre_post_nsteps:(1,1)
+    MLDSA_REJ_UNIFORM_ETA2_EXEC
+    (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA2_EXEC]
+       MLDSA_REJ_UNIFORM_ETA2_CORRECT)
+    `[]:((armstate,int64)component)list` 576);;
+
+(* ========================================================================= *)
+(* Constant-time and memory safety proof.                                    *)
+(* ========================================================================= *)
+
+needs "s2n_bignum/arm/proofs/consttime.ml";;
+needs "mldsa_native/aarch64/proofs/subroutine_signatures.ml";;
+
+let full_spec_eta2,public_vars_eta2 = mk_safety_spec
+    ~keep_maychanges:false
+    (assoc "mldsa_rej_uniform_eta2" subroutine_signatures)
+    MLDSA_REJ_UNIFORM_ETA2_SUBROUTINE_CORRECT
+    MLDSA_REJ_UNIFORM_ETA2_EXEC;;
+
+let MLDSA_REJ_UNIFORM_ETA2_SUBROUTINE_SAFE = time prove
+  (full_spec_eta2,
+   ASSERT_CONCL_TAC full_spec_eta2 THEN
+   PROVE_SAFETY_SPEC_TAC ~public_vars:public_vars_eta2 MLDSA_REJ_UNIFORM_ETA2_EXEC);;
