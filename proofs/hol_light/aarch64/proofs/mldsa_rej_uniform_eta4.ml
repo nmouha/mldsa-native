@@ -2451,23 +2451,11 @@ set_goal([], `!res buf buflen table (inlist:byte list) pc stackpointer.
             MAYCHANGE [memory :> bytes(res,1024);
                        memory :> bytes(stackpointer,576)])`);;
 
-(* === FULL PROOF TACTIC (with 3 CHEATs) === *)
-Printf.printf "DEBUG: entering proof tactic\n%!";;
-
-let DBG msg = fun g ->
-  let (hyps, goal) = g in
-  Printf.printf "DEBUG: %s | %d hyps | goal head: %s\n%!" msg
-    (List.length hyps)
-    (let s = string_of_term goal in
-     if String.length s > 100 then String.sub s 0 100 else s);
-  ALL_TAC g;;
-
 (* Key technique: ENSURES_SEQUENCE_TAC within loop body at pc+0xD8 *)
 (* to capture X12/X13 bounds before ST1 stores.                   *)
 (* ARM_VERBOSE_STEP_TAC for FMOV exposes symbolic X12/X13.        *)
 
-e (DBG "01 START" THEN
- REWRITE_TAC[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC;
+e (REWRITE_TAC[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC;
     fst MLDSA_REJ_UNIFORM_ETA4_EXEC;
     MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI;
     C_ARGUMENTS; ALL; C_RETURN] THEN
@@ -2476,7 +2464,6 @@ e (DBG "01 START" THEN
  MAP_EVERY X_GEN_TAC
   [`table:int64`; `inlist:byte list`; `pc:num`; `stackpointer:int64`] THEN
  DISCH_THEN(REPEAT_TCL CONJUNCTS_THEN ASSUME_TAC) THEN
- DBG "02 after DISCH" THEN
 
  (* === Split: computation (pc+4 to pc+256) and writeback (to pc+336) === *)
  (* Intermediate postcondition at pc+256 (CMP X9,X4 instruction) tracks   *)
@@ -2499,44 +2486,31 @@ e (DBG "01 START" THEN
            read (memory :> bytes (stackpointer,2 * niblen)) s =
            num_of_wordlist niblist` THEN
  CONJ_TAC THENL
-  [DBG "03 computation branch";
+  [ALL_TAC;
 
    (*** Writeback phase: pc+256 to pc+336 ***)
-   DBG "04 writeback branch start" THEN
    (*** Uses partial niblist = REJ_NIBBLES_ETA4(SUB_LIST(0,8*n) inlist) ***)
    ENSURES_INIT_TAC "s0" THEN
-   DBG "04a after ENSURES_INIT" THEN
    FIRST_X_ASSUM(X_CHOOSE_THEN `nn:num` MP_TAC) THEN
-   DBG "04b after X_CHOOSE" THEN
    CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
-   DBG "04c after let_CONV" THEN
    ABBREV_TAC `niblist = REJ_NIBBLES_ETA4
      (SUB_LIST(0,8*nn) inlist):int16 list` THEN
-   DBG "04d after ABBREV niblist" THEN
    ABBREV_TAC `niblen = LENGTH(niblist:int16 list)` THEN
-   DBG "04e after ABBREV niblen" THEN
    DISCH_THEN(fun th ->
      MAP_EVERY ASSUME_TAC (CONJUNCTS th)) THEN
-   DBG "04f after DISCH chain" THEN
    SUBGOAL_THEN `val(word niblen:int64) = niblen` ASSUME_TAC THENL
     [MATCH_MP_TAC VAL_WORD_EQ THEN REWRITE_TAC[DIMINDEX_64] THEN
      UNDISCH_TAC `niblen < 272` THEN ARITH_TAC; ALL_TAC] THEN
-   DBG "04f1 after val(word niblen)" THEN
    (* Digitize the stackpointer memory into 64 8-byte abbrevs (b_0..b_63 =
       512 bytes) so that ARM_STEPS can step through the LDR Q16 reads. *)
    BIGNUM_LDIGITIZE_TAC "b_"
      `read (memory :> bytes(stackpointer,8 * 64)) s0` THEN
-   DBG "04f2 after LDIGITIZE" THEN
    MEMORY_128_FROM_64_TAC "stackpointer" 0 32 THEN
-   DBG "04f3 after MEMORY_128_FROM_64" THEN
    ASM_REWRITE_TAC[WORD_ADD_0] THEN STRIP_TAC THEN
-   DBG "04f4 after ASM_REWRITE+STRIP" THEN
    (* Unroll the full writeback: preamble (4) + loop (15 * 16 = 240) + post (1 MOV X0).
       The final RET is implicit (PC at pc+336). *)
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--245) THEN
-   DBG "04g after ARM 1-245 (full writeback)" THEN
    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
-   DBG "04h after ENSURES_FINAL" THEN
    (* Bridge between post-WOP invariant and final output:
       - niblist is a PREFIX of REJ_NIBBLES_ETA4 inlist;
         equivalently, REJ_SAMPLE_ETA4(SUB_LIST(0,8*nn) inlist) is a prefix
@@ -2599,9 +2573,7 @@ e (DBG "01 START" THEN
            SUBST1_TAC THENL
           [REWRITE_TAC[REJ_SAMPLE_ETA4; LENGTH_MAP] THEN ASM_REWRITE_TAC[];
            REFL_TAC]]]; ALL_TAC] THEN
-   DBG "04i after length equation" THEN
    ASM_REWRITE_TAC[] THEN
-   DBG "04j after ASM_REWRITE length equation" THEN
    CONJ_TAC THENL
     [(* Conjunct 1: word(MIN 256 niblen) = if niblen < 256 then word niblen else word 256 *)
      COND_CASES_TAC THEN AP_TERM_TAC THEN ASM_ARITH_TAC;
@@ -2611,7 +2583,6 @@ e (DBG "01 START" THEN
      FIRST_X_ASSUM(DISJ_CASES_THEN ASSUME_TAC) THENL
       [(* Case B: buflen < 8*(nn+1). SUB_LIST(0, 8*nn) inlist = inlist,
           so niblist = REJ_NIBBLES_ETA4 inlist. *)
-       DBG "04k CASE_B buflen<..." THEN
        SUBGOAL_THEN `SUB_LIST(0, 8 * nn) (inlist:byte list) = inlist`
          ASSUME_TAC THENL
         [MATCH_MP_TAC SUB_LIST_8nn_INLIST THEN EXISTS_TAC `buflen:num` THEN
@@ -2628,12 +2599,10 @@ e (DBG "01 START" THEN
             (niblist:int16 list)` THEN
          ASM_REWRITE_TAC[];
          ALL_TAC] THEN
-       DBG "04k1 CASE_B after REJ_SAMPLE=MAP" THEN
        (* Sub-case split: niblen >= 256 reuses Case A path; niblen < 256 is  *)
        (* the "true" Case B needing STACK_CONTENT_SMALL + prefix extraction.  *)
        ASM_CASES_TAC `256 <= niblen` THENL
         [(* niblen >= 256 sub-branch: reuses Case A closure verbatim.        *)
-         DBG "04k2_large CASE_B (niblen >= 256 — Case A path)" THEN
          SUBGOAL_THEN `MIN 256 niblen = 256` SUBST1_TAC THENL
           [ASM_ARITH_TAC; ALL_TAC] THEN
          REWRITE_TAC[ARITH_RULE `4 * 256 = 1024`] THEN
@@ -2734,7 +2703,6 @@ e (DBG "01 START" THEN
            THENC NUM_REDUCE_CONV)) THEN
          REFL_TAC;
          (* True Case B sub-branch: niblen < 256 *)
-         DBG "04k2_small CASE_B (niblen < 256)" THEN
          SUBGOAL_THEN `niblen < 256` ASSUME_TAC THENL
           [ASM_ARITH_TAC; ALL_TAC] THEN
          SUBGOAL_THEN `MIN 256 niblen = niblen` SUBST1_TAC THENL
@@ -2746,7 +2714,6 @@ e (DBG "01 START" THEN
           [ASM_REWRITE_TAC[] THEN MATCH_MP_TAC SUB_LIST_REFL THEN
            REWRITE_TAC[LENGTH_MAP] THEN ASM_ARITH_TAC;
            ALL_TAC] THEN
-         DBG "04l CASE_B_small after simplifications" THEN
          (* Goal: bytes(res, 4*niblen) = num_of_wordlist(MAP f niblist).
             Materialize a 256-element L whose prefix matches niblist, run Case A
             chain on L to get bytes(res, 1024) = num_of_wordlist(MAP f L),
@@ -2755,7 +2722,6 @@ e (DBG "01 START" THEN
                        BYTES_EXISTS_WORDLIST) THEN
          REWRITE_TAC[ARITH_RULE `2 * 256 = 512`] THEN
          DISCH_THEN(X_CHOOSE_THEN `L:int16 list` STRIP_ASSUME_TAC) THEN
-         DBG "04m1 CASE_B_small after CHOOSE L" THEN
          SUBGOAL_THEN `SUB_LIST(0, niblen) (L:int16 list) = niblist`
            ASSUME_TAC THENL
           [MATCH_MP_TAC PREFIX_FROM_STACK THEN
@@ -2763,12 +2729,10 @@ e (DBG "01 START" THEN
              [`stackpointer:int64`; `s245:armstate`] THEN
            ASM_REWRITE_TAC[] THEN ASM_ARITH_TAC;
            ALL_TAC] THEN
-         DBG "04m2 CASE_B_small after PREFIX_FROM_STACK" THEN
          MATCH_MP_TAC CASE_B_TRUNCATE_L THEN
          EXISTS_TAC `L:int16 list` THEN
          ASM_REWRITE_TAC[] THEN
          CONJ_TAC THENL [ASM_ARITH_TAC; ALL_TAC] THEN
-         DBG "04m3 CASE_B_small reduced to 1024 identity on L" THEN
          (* Now prove: bytes(res, 1024) s245 = num_of_wordlist(MAP f L).
             Same Case A chain but with L in place of niblist. *)
          SUBGOAL_THEN `256 <= LENGTH (L:int16 list)` ASSUME_TAC THENL
@@ -2784,7 +2748,6 @@ e (DBG "01 START" THEN
              ASSUME_TAC (MP inst premise)) (0--63)) THEN
          RULE_ASSUM_TAC(CONV_RULE(DEPTH_CONV NUM_MULT_CONV)) THEN
          RULE_ASSUM_TAC(REWRITE_RULE[WORD_ADD_0]) THEN
-         DBG "04n CASE_B_small after BK facts added" THEN
          (fun (asl, _ as gl) ->
            let bk_trans_thms = List.filter_map (fun (_, th) ->
              let c = concl th in
@@ -2804,19 +2767,14 @@ e (DBG "01 START" THEN
            Printf.printf "DEBUG: Case B small bk_trans thms count=%d\n%!"
              (List.length bk_trans_thms);
            MAP_EVERY ASSUME_TAC bk_trans_thms gl) THEN
-         DBG "04o CASE_B_small after 64 b_k=word(...) hyps added" THEN
          REWRITE_TAC[ARITH_RULE `1024 = 8 * 128`] THEN
          CONV_TAC(ONCE_DEPTH_CONV BIGNUM_LEXPAND_CONV) THEN
-         DBG "04p CASE_B_small after LEXPAND" THEN
          RULE_ASSUM_TAC(CONV_RULE(ONCE_DEPTH_CONV(READ_MEMORY_SPLIT_CONV 1))) THEN
-         DBG "04q CASE_B_small after bytes128 SPLIT" THEN
          ASM_REWRITE_TAC[] THEN
-         DBG "04r CASE_B_small after ASM_REWRITE chain" THEN
          REWRITE_TAC[SSHLL_CHUNK_WORD_SUBWORD_LO_INT64;
                      SSHLL_CHUNK_WORD_SUBWORD_HI_INT64;
                      SSHLL_CHUNK_WORD_SUBWORD_LO_INT64_HIINNER;
                      SSHLL_CHUNK_WORD_SUBWORD_HI_INT64_HIINNER] THEN
-         DBG "04s CASE_B_small after chunk collapse" THEN
          MP_TAC(GEN `a:num` (ISPECL [`L:int16 list`; `a:num`]
                                     WORD_SUBWORD_JOIN_SUB_LIST_H)) THEN
          DISCH_THEN(fun univ_th ->
@@ -2830,12 +2788,10 @@ e (DBG "01 START" THEN
              let discharged = CONV_RULE (REWRITE_CONV[ARITH]) raw in
              REWRITE_TAC[discharged])
              (List.map (fun k -> 8 * k) (0--31))) THEN
-         DBG "04t CASE_B_small after halfword->EL reduction" THEN
          (* Reduce SUB_LIST(0, 256) L = L on RHS since LENGTH L = 256. *)
          SUBGOAL_THEN `SUB_LIST(0, 256) (L:int16 list) = L` SUBST1_TAC THENL
           [MATCH_MP_TAC SUB_LIST_REFL THEN ASM_REWRITE_TAC[LE_REFL];
            ALL_TAC] THEN
-         DBG "04u CASE_B_small before PAIR_MAP_IDX_128" THEN
          (* Close via PAIR_MAP_IDX_128 at L. Since LENGTH L = 256 we get
             bignum_of_wordlist [128 pairs] = num_of_wordlist(MAP f (SUB_LIST(0,256) L)). *)
          MP_TAC(SPEC `L:int16 list` PAIR_MAP_IDX_128) THEN
@@ -2845,7 +2801,6 @@ e (DBG "01 START" THEN
            DISCH_THEN(SUBST1_TAC o SYM) THEN REFL_TAC]];
        (* Case A: 256 <= niblen. Simplify MIN to 256, then rewrite RHS via
           prefix lemma to SUB_LIST(0,256)(MAP f niblist). *)
-       DBG "04k CASE_A 256<=niblen" THEN
        SUBGOAL_THEN `MIN 256 niblen = 256` SUBST1_TAC THENL
         [ASM_ARITH_TAC; ALL_TAC] THEN
        REWRITE_TAC[ARITH_RULE `4 * 256 = 1024`] THEN
@@ -2869,10 +2824,8 @@ e (DBG "01 START" THEN
          DISCH_THEN SUBST1_TAC THEN AP_TERM_TAC THEN
          ASM_REWRITE_TAC[REJ_SAMPLE_ETA4];
          ALL_TAC] THEN
-       DBG "04l CASE_A after prefix bridge" THEN
        (* SUB_LIST_MAP: SUB_LIST(0,256)(MAP f L) = MAP f (SUB_LIST(0,256) L) *)
        REWRITE_TAC[SUB_LIST_MAP] THEN
-       DBG "04m CASE_A after SUB_LIST_MAP" THEN
        (* Build the STACK_CONTENT bridge: SUB_LIST(0,256) niblist is what we care
           about. In Case A, LENGTH niblist = niblen >= 256, so
           STACK_CONTENT niblist = SUB_LIST(0, 256) niblist. *)
@@ -2883,7 +2836,6 @@ e (DBG "01 START" THEN
          UNDISCH_TAC `LENGTH(niblist:int16 list) = niblen` THEN
          DISCH_THEN SUBST1_TAC THEN ASM_REWRITE_TAC[];
          ALL_TAC] THEN
-       DBG "04n CASE_A after STACK_CONTENT_LARGE" THEN
        (* First: establish each b_k = word(num_of_wordlist (SUB_LIST(4k,4) niblist))
           BEFORE LEXPAND. *)
        MP_TAC(GEN `k:num` (ISPECL [`s245:armstate`; `stackpointer:int64`;
@@ -2897,7 +2849,6 @@ e (DBG "01 START" THEN
            ASSUME_TAC (MP inst premise)) (0--63)) THEN
        RULE_ASSUM_TAC(CONV_RULE(DEPTH_CONV NUM_MULT_CONV)) THEN
        RULE_ASSUM_TAC(REWRITE_RULE[WORD_ADD_0]) THEN
-       DBG "04o CASE_A after BK facts added + normalized" THEN
        (* BEFORE touching any hyps: build the 64 b_k = word(...) theorems and
           ADD them as hyps via ASSUME_TAC. *)
        (fun (asl, _ as gl) ->
@@ -2920,22 +2871,17 @@ e (DBG "01 START" THEN
          Printf.printf "DEBUG: bk_trans thms count=%d\n%!"
            (List.length bk_trans_thms);
          MAP_EVERY ASSUME_TAC bk_trans_thms gl) THEN
-       DBG "04p CASE_A after 64 b_k=word(...) hyps added" THEN
        (* Now LEXPAND + SPLIT + ASM_REWRITE chains all together. *)
        REWRITE_TAC[ARITH_RULE `1024 = 8 * 128`] THEN
        CONV_TAC(ONCE_DEPTH_CONV BIGNUM_LEXPAND_CONV) THEN
-       DBG "04q CASE_A after LEXPAND" THEN
        RULE_ASSUM_TAC(CONV_RULE(ONCE_DEPTH_CONV(READ_MEMORY_SPLIT_CONV 1))) THEN
-       DBG "04r CASE_A after bytes128 SPLIT" THEN
        ASM_REWRITE_TAC[] THEN
-       DBG "04s CASE_A after ASM_REWRITE chain" THEN
        (* Use the chunk-level BITBLAST identities to collapse the 128 int64
           word_subword expressions. *)
        REWRITE_TAC[SSHLL_CHUNK_WORD_SUBWORD_LO_INT64;
                    SSHLL_CHUNK_WORD_SUBWORD_HI_INT64;
                    SSHLL_CHUNK_WORD_SUBWORD_LO_INT64_HIINNER;
                    SSHLL_CHUNK_WORD_SUBWORD_HI_INT64_HIINNER] THEN
-       DBG "04t CASE_A after chunk word_subword collapse (all 4 variants)" THEN
        (* Apply WORD_SUBWORD_JOIN_SUB_LIST_H for a in {0,8,16,...,248} to    *)
        (* reduce each chunk's 8 word_subword(word_join ...) halfword reads   *)
        (* to EL (a+k) niblist. Premise (a+8 <= LENGTH niblist) derives from *)
@@ -2959,13 +2905,11 @@ e (DBG "01 START" THEN
              (REWRITE_CONV[ARITH]) raw in
            REWRITE_TAC[discharged])
            (List.map (fun k -> 8 * k) (0--31))) THEN
-       DBG "04t2 CASE_A after halfword->EL reduction" THEN
        (* Unfold STACK_CONTENT on RHS: in Case A, it's SUB_LIST(0,256) niblist. *)
        SUBGOAL_THEN `STACK_CONTENT (niblist:int16 list) = SUB_LIST(0, 256) niblist`
          SUBST1_TAC THENL
         [MATCH_MP_TAC STACK_CONTENT_LARGE THEN ASM_REWRITE_TAC[];
          ALL_TAC] THEN
-       DBG "04u1 CASE_A after STACK_CONTENT→SUB_LIST" THEN
        (* Close Case A using PAIR_MAP_IDX_128: the scaled pair-form identity.
           The goal here is exactly of the form
             bignum_of_wordlist [word_join ...; ...(128 entries)...] =
@@ -3000,7 +2944,6 @@ e (DBG "01 START" THEN
    ARITH_TAC;
    ALL_TAC] THEN
 
- DBG "05 before ENSURES_WHILE_UP_TAC" THEN
  ENSURES_WHILE_UP_TAC `N:num` `pc + 108` `pc + 248`
   `\i s. read (memory :> bytes (table,4096)) s =
          num_of_wordlist mldsa_rej_uniform_eta_table /\
@@ -3021,10 +2964,9 @@ e (DBG "01 START" THEN
          num_of_wordlist niblist` THEN
  REPEAT CONJ_TAC THENL
   [(*** Subgoal 1: 0 < N ***)
-   DBG "06 subgoal1 0<N" THEN ASM_ARITH_TAC;
+   ASM_ARITH_TAC;
 
    (*** Subgoal 2: Pre-loop init (75 ARM steps) ***)
-   DBG "07 subgoal2 preamble" THEN
    GHOST_INTRO_TAC `q31_init:int128` `read Q31` THEN
    ENSURES_INIT_TAC "s0" THEN
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--75) THEN
@@ -3036,24 +2978,18 @@ e (DBG "01 START" THEN
    REWRITE_TAC[READ_COMPONENT_COMPOSE; READ_BYTES_TRIVIAL; num_of_wordlist];
 
    (*** Subgoal 3: Loop body — split at pc+0xe0, with Q16/Q17 content ***)
-   DBG "08 subgoal3 loop body" THEN
    X_GEN_TAC `i:num` THEN STRIP_TAC THEN
-   DBG "08a after X_GEN+STRIP" THEN
    ABBREV_TAC `curlist = REJ_NIBBLES_ETA4(SUB_LIST(0,8 * i) inlist)` THEN
    ABBREV_TAC `curlen = LENGTH(curlist:int16 list)` THEN
-   DBG "08b after ABBREVs" THEN
    SUBGOAL_THEN `curlen < 256` ASSUME_TAC THENL
     [EXPAND_TAC "curlen" THEN EXPAND_TAC "curlist" THEN
      FIRST_X_ASSUM(MP_TAC o SPEC `i:num`) THEN
      UNDISCH_TAC `i < N:num` THEN ARITH_TAC; ALL_TAC] THEN
-   DBG "08c after curlen<256" THEN
    SUBGOAL_THEN `8 * (i + 1) <= buflen` ASSUME_TAC THENL
     [FIRST_X_ASSUM(MP_TAC o SPEC `i:num`) THEN
      UNDISCH_TAC `i < N:num` THEN ARITH_TAC; ALL_TAC] THEN
-   DBG "08d after 8*(i+1)<=buflen" THEN
    CONV_TAC(RATOR_CONV(LAND_CONV(TOP_DEPTH_CONV let_CONV))) THEN
    ASM_REWRITE_TAC[] THEN
-   DBG "08e after let_CONV+ASM_REWRITE" THEN
    (* removed spurious ENSURES_INIT_TAC that was breaking ENSURES_SEQUENCE_TAC *)
    ENSURES_SEQUENCE_TAC `pc + 0xe0`
     `\s. read (memory :> bytes (table,4096)) s =
@@ -3083,7 +3019,6 @@ e (DBG "01 START" THEN
          nonoverlapping (stackpointer,576) (word pc,344)` THEN
    CONJ_TAC THENL
     [(* First half: SIMD compute chain — 29 steps *)
-     DBG "09 first half start" THEN
      GHOST_INTRO_TAC `nibbles1:int128` `read Q17` THEN
      ENSURES_INIT_TAC "s0" THEN
      ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--2) THEN
@@ -3138,7 +3073,6 @@ e (DBG "01 START" THEN
      RULE_ASSUM_TAC(CONV_RULE WORD_REDUCE_CONV) THEN
      (* Steps 28-29: TBL Q16, TBL Q17. *)
      ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (28--29) THEN
-     DBG "10 after steps 1-29" THEN
      (* Reference-style TBL correctness lemma: prove Q16 s29 / Q17 s29 content
         from table content + nibbles identities, BEFORE ENSURES_FINAL_STATE_TAC
         so that the state tracking for Q16/Q17 reads is still live. *)
@@ -3289,7 +3223,6 @@ e (DBG "01 START" THEN
        REWRITE_TAC[VAL_BYTE_NIB_MOD_65536] THEN
        CONV_TAC WORD_BLAST;
        STRIP_TAC] THEN
-     DBG "10a after TBL correctness subgoal" THEN
      (* Discard the ARM stepper's Q16/Q17 word_join form — we have the clean
         equation from the SUBGOAL (read Q16/Q17 s29 = word(num_of_wordlist ...))
         and the nested word_join version only causes ASM_REWRITE_TAC to rewrite
@@ -3297,20 +3230,16 @@ e (DBG "01 START" THEN
      DISCARD_MATCHING_ASSUMPTIONS
       [`read Q16 s = word_join (x:int64) (y:int64):int128`;
        `read Q17 s = word_join (x:int64) (y:int64):int128`] THEN
-     DBG "10a2 after DISCARD arm Q16/Q17 word_join" THEN
      ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
      ASM_REWRITE_TAC[WORD_SUBWORD_AND] THEN
      CONV_TAC(DEPTH_CONV WORD_SIMPLE_SUBWORD_CONV) THEN
      CONV_TAC(DEPTH_CONV WORD_NUM_RED_CONV) THEN
      REWRITE_TAC[WORD_AND_0; WORD_POPCOUNT_0; ADD_CLAUSES] THEN
      REWRITE_TAC[POPCOUNT_AND_POWERS] THEN
-     DBG "11 before REPEAT CONJ_TAC" THEN
      REPEAT CONJ_TAC THEN
-     DBG "12 after REPEAT CONJ_TAC" THEN
      TRY(CONV_TAC WORD_RULE) THEN
      TRY(NONOVERLAPPING_TAC) THEN
      TRY(REWRITE_TAC[UADDLV_BOUND_LEMMA] THEN NO_TAC) THEN
-     DBG "13 after BOUND TRY" THEN
      TRY(ASM_REWRITE_TAC[] THEN NO_TAC) THEN
      TRY(ASM_ARITH_TAC) THEN
      (* Remaining goal: the existential `?lis0 lis1. ...` carrying post-TBL
@@ -3319,7 +3248,6 @@ e (DBG "01 START" THEN
         decomposition close directly; only the TBL-semantic Q16/Q17/X12/X13
         equalities remain as a CHEAT (TBL correctness on the 256-entry
         eta table). *)
-     DBG "14 first-half existential" THEN
      EXISTS_TAC
        `REJ_NIBBLES_ETA4
           [word_subword (loaded_d:int64) (0,8):byte;
@@ -3332,10 +3260,8 @@ e (DBG "01 START" THEN
            word_subword loaded_d (40,8);
            word_subword loaded_d (48,8);
            word_subword loaded_d (56,8)]` THEN
-     DBG "14a after EXISTS_TAC witnesses" THEN
      (* LENGTH bounds: LENGTH(REJ_NIBBLES_ETA4[4 bytes]) <= 8. *)
      REWRITE_TAC[REJ_NIBBLES_ETA4_LENGTH_4] THEN
-     DBG "14b after LENGTH bounds" THEN
      (* Derive SUB_LIST(8*i, 8) inlist = [word_subword loaded_d (0,8); ...;
         (56,8)] from the memory-loaded bytes hypothesis. *)
      SUBGOAL_THEN
@@ -3349,8 +3275,7 @@ e (DBG "01 START" THEN
          word_subword loaded_d (48,8);
          word_subword loaded_d (56,8)]`
      ASSUME_TAC THENL
-      [DBG "14b1 start SUB_LIST bridge" THEN
-       CONV_TAC SYM_CONV THEN
+      [CONV_TAC SYM_CONV THEN
        REWRITE_TAC[LISTS_NUM_OF_WORDLIST_EQ] THEN CONJ_TAC THENL
         [REWRITE_TAC[LENGTH; LENGTH_SUB_LIST] THEN
          UNDISCH_TAC `LENGTH(inlist:byte list) = buflen` THEN
@@ -3389,11 +3314,9 @@ e (DBG "01 START" THEN
          CONV_TAC NUM_REDUCE_CONV THEN CONV_TAC WORD_BLAST;
          ASM_MESON_TAC[]];
        ALL_TAC] THEN
-     DBG "14b2 after SUB_LIST bridge" THEN
      (* Rewrite the target list via the SUB_LIST bridge and decompose via
         REJ_NIBBLES_ETA4_SPLIT_8 to close the APPEND conjunct. *)
      ASM_REWRITE_TAC[REJ_NIBBLES_ETA4_SPLIT_8] THEN
-     DBG "14b3 after ASM_REWRITE SPLIT_8" THEN
      (* Establish the 16 halfword identities ONCE at the top (instead of
         inside TRY per conjunct). These are: word_subword nibbles0 (k*16,16)
         = word_zx(nibble_k of loaded_d's first 4 bytes), and analogously
@@ -3403,9 +3326,7 @@ e (DBG "01 START" THEN
        (vsubst [mk_small_numeral k, `k:num`]
        `bit k (word_subword (word_neg (word (bitval b):16 word))
                (0,8):8 word) <=> b`)) (0--7)) THEN
-     DBG "14b4 after bit-k rewrites" THEN
      ASM_REWRITE_TAC[] THEN
-     DBG "14b5 after ASM_REWRITE" THEN
      (let prove_hw name pos byte_pos op =
         let rhs_inner = if op = "and"
           then Printf.sprintf
@@ -3440,10 +3361,8 @@ e (DBG "01 START" THEN
       prove_hw "nibbles1b" 80 48 "ushr" THEN
       prove_hw "nibbles1b" 96 56 "and" THEN
       prove_hw "nibbles1b" 112 56 "ushr") THEN
-     DBG "14b6 after prove_hw 16x" THEN
      (* Now split conjuncts and close each one. *)
      REPEAT CONJ_TAC THEN
-     DBG "14c after REPEAT CONJ_TAC" THEN
      (* Close each subgoal. FIRST-tries all 4 tactic branches per subgoal,
         so only one matches each shape. *)
      FIRST
@@ -3472,66 +3391,50 @@ e (DBG "01 START" THEN
          FIRST_ASSUM(fun arm_hyp ->
            try ACCEPT_TAC(TRANS (SYM arm_hyp) my_hyp)
            with _ -> NO_TAC))];
-     DBG "14e after FIRST branches" THEN
      ALL_TAC] THEN
    (* Second half: ST1 stores + accumulation — 6 steps *)
-   DBG "15 second half start" THEN
    ENSURES_INIT_TAC "s0" THEN
-   DBG "15a after ENSURES_INIT" THEN
    (* Unpack ?lis0 lis1 from the strengthened invariant. *)
    FIRST_X_ASSUM(X_CHOOSE_THEN `lis0:int16 list` MP_TAC o check
      (fun th -> try fst(dest_var(fst(dest_exists(concl th)))) = "lis0"
                 with _ -> false)) THEN
    DISCH_THEN(X_CHOOSE_THEN `lis1:int16 list` STRIP_ASSUME_TAC) THEN
-   DBG "15a2 after CHOOSE lis0/lis1" THEN
    ABBREV_TAC `len0 = LENGTH(lis0:int16 list)` THEN
    ABBREV_TAC `len1 = LENGTH(lis1:int16 list)` THEN
-   DBG "15b after ABBREV len0/len1" THEN
    (* Promote val(X12 s0) = len0, val(X13 s0) = len1 (from invariant). *)
    SUBGOAL_THEN `val(read X12 s0:int64) = len0 /\ val(read X13 s0:int64) = len1`
      STRIP_ASSUME_TAC THENL [ASM_REWRITE_TAC[]; ALL_TAC] THEN
-   DBG "15b2 after val(X12/X13 s0) = len_i" THEN
    (* Step 1 = ST1 Q16 at X7 = sp+2*curlen. After step, bytes128 at that
       address holds word(num_of_wordlist lis0). *)
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC [1] THEN
-   DBG "15c after ARM step 1 (STR Q16)" THEN
    (* Establish memory equation covering APPEND curlist lis0. *)
    SUBGOAL_THEN
     `read (memory :> bytes (stackpointer, 2 * (curlen + len0))) s1 =
      num_of_wordlist(APPEND curlist lis0:int16 list)`
    ASSUME_TAC THENL
     [REWRITE_TAC[LEFT_ADD_DISTRIB] THEN
-     DBG "WB1a before LENGTH curlist" THEN
      SUBGOAL_THEN `LENGTH(curlist:int16 list) = curlen` ASSUME_TAC THENL
       [EXPAND_TAC "curlen" THEN REFL_TAC; ALL_TAC] THEN
-     DBG "WB1b after LENGTH curlist" THEN
      W(MP_TAC o PART_MATCH (lhand o rand)
        BYTES_EQ_NUM_OF_WORDLIST_APPEND o snd) THEN
-     DBG "WB1c after PART_MATCH" THEN
      ANTS_TAC THENL
       [REWRITE_TAC[DIMINDEX_16] THEN ASM_REWRITE_TAC[] THEN ARITH_TAC;
        ALL_TAC] THEN
-     DBG "WB1d after ANTS" THEN
      DISCH_THEN SUBST1_TAC THEN
-     DBG "WB1e after SUBST1 iff" THEN
      CONJ_TAC THENL
       [ASM_REWRITE_TAC[];
-       DBG "WB1f in second CONJ" THEN
        SUBGOAL_THEN
         `read (memory :> bytes128
                (word_add stackpointer (word (2 * curlen)))) s1 =
          word(num_of_wordlist(lis0:int16 list)):int128`
        MP_TAC THENL [ASM_REWRITE_TAC[]; ALL_TAC] THEN
-       DBG "WB1g after bytes128 SUBGOAL" THEN
        DISCH_THEN(MP_TAC o AP_TERM `val:int128->num`) THEN
        REWRITE_TAC[READ_COMPONENT_COMPOSE; BYTES128_WBYTES;
                    VAL_READ_WBYTES;
                    DIMINDEX_128; ARITH_RULE `128 DIV 8 = 16`] THEN
-       DBG "WB1h after WBYTES rewrites" THEN
        SUBGOAL_THEN `2 * len0 = MIN 16 (2 * len0)` SUBST1_TAC THENL
         [UNDISCH_TAC `len0:num <= 8` THEN ARITH_TAC;
          REWRITE_TAC[GSYM READ_BYTES_MOD]] THEN
-       DBG "WB1i after MIN subst" THEN
        DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[VAL_WORD] THEN
        REWRITE_TAC[DIMINDEX_128; MOD_MOD_EXP_MIN] THEN
        MATCH_MP_TAC MOD_LT THEN
@@ -3539,7 +3442,6 @@ e (DBG "01 START" THEN
        ASM_REWRITE_TAC[DIMINDEX_16] THEN
        UNDISCH_TAC `len0:num <= 8` THEN ARITH_TAC];
      ALL_TAC] THEN
-   DBG "15c2 after memory curlist+lis0 at s1" THEN
    SUBGOAL_THEN `read X12 s1:int64 = word len0` ASSUME_TAC THENL
     [REWRITE_TAC[GSYM VAL_EQ] THEN ASM_REWRITE_TAC[VAL_WORD; DIMINDEX_64] THEN
      CONV_TAC SYM_CONV THEN MATCH_MP_TAC MOD_LT THEN
@@ -3548,17 +3450,13 @@ e (DBG "01 START" THEN
     [REWRITE_TAC[GSYM VAL_EQ] THEN ASM_REWRITE_TAC[VAL_WORD; DIMINDEX_64] THEN
      CONV_TAC SYM_CONV THEN MATCH_MP_TAC MOD_LT THEN
      UNDISCH_TAC `len1:num <= 8` THEN ARITH_TAC; ALL_TAC] THEN
-   DBG "15h after X12/X13 s1" THEN
    ARM_VERBOSE_STEP_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC "s2" THEN
-   DBG "15i after VSTEP s2" THEN
    FIRST_X_ASSUM(MP_TAC o GEN_REWRITE_RULE RAND_CONV [WORD_ADD_SHL1]) THEN
    ASM_REWRITE_TAC[] THEN DISCH_TAC THEN
-   DBG "15j after WORD_ADD_SHL1 rewrite" THEN
    SUBGOAL_THEN
     `nonoverlapping (word_add stackpointer (word(2 * (curlen + len0))):int64,
                      16) (word pc:int64, 344)`
    ASSUME_TAC THENL [NONOVERLAPPING_TAC; ALL_TAC] THEN
-   DBG "15k after nonoverlapping subgoal" THEN
    (* Reduce val(word len0) → len0 in hypotheses so the ST1 Q17 step
       records the clean address. *)
    SUBGOAL_THEN `val(word len0:int64) = len0` ASSUME_TAC THENL
@@ -3567,7 +3465,6 @@ e (DBG "01 START" THEN
    RULE_ASSUM_TAC(REWRITE_RULE[ASSUME `val(word len0:int64) = len0`]) THEN
    (* Step 3 = ST1 Q17 at X7 = sp+2*(curlen+len0). *)
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC [3] THEN
-   DBG "15l after ARM step 3 (STR Q17)" THEN
    (* Reduce val(word len0) → len0 again (ARM_STEPS re-introduces it). *)
    RULE_ASSUM_TAC(REWRITE_RULE[ASSUME `val(word len0:int64) = len0`]) THEN
    (* Build memory equation covering APPEND (APPEND curlist lis0) lis1. *)
@@ -3576,21 +3473,16 @@ e (DBG "01 START" THEN
      num_of_wordlist(APPEND (APPEND curlist lis0) lis1:int16 list)`
    ASSUME_TAC THENL
     [REWRITE_TAC[LEFT_ADD_DISTRIB] THEN
-     DBG "WB2a start" THEN
      SUBGOAL_THEN
        `LENGTH(APPEND curlist lis0:int16 list) = curlen + len0`
      ASSUME_TAC THENL
       [REWRITE_TAC[LENGTH_APPEND] THEN ASM_REWRITE_TAC[]; ALL_TAC] THEN
-     DBG "WB2b after LENGTH APPEND" THEN
      W(MP_TAC o PART_MATCH (lhand o rand)
        BYTES_EQ_NUM_OF_WORDLIST_APPEND o snd) THEN
-     DBG "WB2c after PART_MATCH" THEN
      ANTS_TAC THENL
       [REWRITE_TAC[DIMINDEX_16] THEN ASM_REWRITE_TAC[] THEN ARITH_TAC;
        ALL_TAC] THEN
-     DBG "WB2d after ANTS" THEN
      DISCH_THEN SUBST1_TAC THEN
-     DBG "WB2e after SUBST1" THEN
      (* Normalize split address so it matches the hyp. *)
      SUBGOAL_THEN
        `word_add stackpointer (word (2 * curlen + 2 * len0):int64) =
@@ -3601,22 +3493,18 @@ e (DBG "01 START" THEN
       SUBST1_TAC THENL [ARITH_TAC; ALL_TAC] THEN
      CONJ_TAC THENL
       [ASM_REWRITE_TAC[];
-       DBG "WB2f in second CONJ" THEN
        SUBGOAL_THEN
         `read (memory :> bytes128
                (word_add stackpointer (word (2 * (curlen + len0))))) s3 =
          word(num_of_wordlist(lis1:int16 list)):int128`
        MP_TAC THENL [ASM_REWRITE_TAC[]; ALL_TAC] THEN
-       DBG "WB2g after bytes128" THEN
        DISCH_THEN(MP_TAC o AP_TERM `val:int128->num`) THEN
        REWRITE_TAC[READ_COMPONENT_COMPOSE; BYTES128_WBYTES;
                    VAL_READ_WBYTES;
                    DIMINDEX_128; ARITH_RULE `128 DIV 8 = 16`] THEN
-       DBG "WB2h after WBYTES rewrites" THEN
        SUBGOAL_THEN `2 * len1 = MIN 16 (2 * len1)` SUBST1_TAC THENL
         [UNDISCH_TAC `len1:num <= 8` THEN ARITH_TAC;
          REWRITE_TAC[GSYM READ_BYTES_MOD]] THEN
-       DBG "WB2i after MIN subst" THEN
        DISCH_THEN SUBST1_TAC THEN REWRITE_TAC[VAL_WORD] THEN
        REWRITE_TAC[DIMINDEX_128; MOD_MOD_EXP_MIN] THEN
        MATCH_MP_TAC MOD_LT THEN
@@ -3624,29 +3512,19 @@ e (DBG "01 START" THEN
        ASM_REWRITE_TAC[DIMINDEX_16] THEN
        UNDISCH_TAC `len1:num <= 8` THEN ARITH_TAC];
      ALL_TAC] THEN
-   DBG "15l2 after memory curlist+lis0+lis1 at s3" THEN
    ARM_VERBOSE_STEP_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC "s4" THEN
-   DBG "15m after VSTEP s4" THEN
    FIRST_X_ASSUM(MP_TAC o GEN_REWRITE_RULE RAND_CONV [WORD_ADD_SHL1]) THEN
    ASM_REWRITE_TAC[] THEN DISCH_TAC THEN
-   DBG "15n after WORD_ADD_SHL1 rewrite 2" THEN
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (5--6) THEN
-   DBG "15o after ARM steps 5-6" THEN
    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
-   DBG "15p after ENSURES_FINAL" THEN
    CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
-   DBG "15q after let_CONV" THEN
    SUBGOAL_THEN `8 * (i + 1) <= LENGTH(inlist:byte list)` ASSUME_TAC THENL
     [ASM_REWRITE_TAC[] THEN
      MP_TAC(ASSUME `8 * (i + 1) <= buflen`) THEN ARITH_TAC;
      ALL_TAC] THEN
-   DBG "15r after 8*(i+1)<=LENGTH" THEN
    MP_TAC(SPECL [`inlist:byte list`; `i:num`] REJ_NIBBLES_ETA4_STEP) THEN
-   DBG "15s after MP_TAC REJ_NIBBLES_ETA4_STEP" THEN
    ASM_REWRITE_TAC[] THEN DISCH_THEN SUBST1_TAC THEN
-   DBG "15t after STEP DISCH" THEN
    ABBREV_TAC `newbatch = REJ_NIBBLES_ETA4(SUB_LIST(8*i, 8) inlist):int16 list` THEN
-   DBG "15u after ABBREV newbatch" THEN
    (* newbatch = APPEND lis0 lis1 from invariant *)
    SUBGOAL_THEN `APPEND (lis0:int16 list) lis1 = newbatch` ASSUME_TAC THENL
     [EXPAND_TAC "newbatch" THEN ASM_REWRITE_TAC[]; ALL_TAC] THEN
@@ -3663,14 +3541,10 @@ e (DBG "01 START" THEN
        UNDISCH_TAC `len1:num <= 8` THEN ARITH_TAC];
      ALL_TAC] THEN
    REWRITE_TAC[LENGTH_APPEND] THEN ASM_REWRITE_TAC[] THEN
-   DBG "15v after newbatch decomp" THEN
    REPEAT CONJ_TAC THEN
-   DBG "15w after REPEAT CONJ_TAC" THEN
    TRY(CONV_TAC WORD_RULE) THEN
-   DBG "15x after TRY WORD_RULE" THEN
    TRY(AP_TERM_TAC THEN AP_TERM_TAC THEN
        ASM_REWRITE_TAC[] THEN ARITH_TAC) THEN
-   DBG "15y after TRY size-equality" THEN
    (* Remaining: the memory-APPEND goal. Close via the established
       curlist+lis0+lis1 memory equation (now propagated to s6 by MAYCHANGE). *)
    SUBGOAL_THEN
@@ -3686,12 +3560,9 @@ e (DBG "01 START" THEN
    ASM_REWRITE_TAC[];
 
    (*** Subgoal 4: Back edge — 2 ARM steps from pc+248 to pc+108 ***)
-   DBG "16 subgoal4 back edge" THEN
    X_GEN_TAC `i:num` THEN STRIP_TAC THEN
    CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
-   DBG "16a after let_CONV" THEN
    ENSURES_INIT_TAC "s0" THEN
-   DBG "16b after ENSURES_INIT" THEN
    SUBGOAL_THEN `8 <= val(word_sub (word buflen:int64) (word(8 * i)))`
    ASSUME_TAC THENL
     [SUBGOAL_THEN `8 * (i + 1) <= buflen` ASSUME_TAC THENL
@@ -3702,16 +3573,12 @@ e (DBG "01 START" THEN
        UNDISCH_TAC `8 * (i + 1) <= buflen` THEN ARITH_TAC; ALL_TAC] THEN
      VAL_INT64_TAC `8 * i` THEN ASM_REWRITE_TAC[VAL_WORD_SUB_CASES] THEN
      UNDISCH_TAC `8 * (i + 1) <= buflen` THEN ARITH_TAC; ALL_TAC] THEN
-   DBG "16c after 8<=val subgoal" THEN
    ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--2) THEN
-   DBG "16d after ARM 1-2" THEN
    ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[];
 
    (*** Subgoal 5: Post-loop exit — from pc+248 to pc+256 ***)
    (*** WOP: at i=N, either buffer exhausted or 256 <= niblen ***)
-   DBG "17 subgoal5 post-loop" THEN
    CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
-   DBG "17a after let_CONV" THEN
    ABBREV_TAC `niblen = LENGTH(REJ_NIBBLES_ETA4(SUB_LIST(0,8*N) inlist):int16 list)` THEN
    SUBGOAL_THEN `niblen < 272` ASSUME_TAC THENL
     [EXPAND_TAC "niblen" THEN
@@ -3722,13 +3589,10 @@ e (DBG "01 START" THEN
      ASM_REWRITE_TAC[];
      ALL_TAC] THEN
    VAL_INT64_TAC `niblen:num` THEN
-   DBG "17b after niblen setup" THEN
    ASM_CASES_TAC `256 <= niblen` THENL
     [(* Case: 256 <= niblen — enough samples *)
-     DBG "17c niblen>=256 case" THEN
      ASM_CASES_TAC `8 <= val(word_sub (word buflen:int64) (word(8 * N)))` THENL
       [(* Subcase: X2 >= 8 — back edge branches to pc+108, then CMP X9>=X4 *)
-       DBG "17d X2>=8 subcase" THEN
        (* branches forward to pc+256. Total 4 ARM steps. *)
        (* Split with ENSURES_SEQUENCE_TAC at pc+108 to avoid ARM_STEPS_TAC *)
        (* stack overflow with deeply nested niblen term. *)
@@ -3744,19 +3608,13 @@ e (DBG "01 START" THEN
              ALL (nonoverlapping (res,1024)) [(word pc,344); (stackpointer,576)]` THEN
        CONJ_TAC THENL
         [(* pc+248 -> pc+108: CMP X2,8; BCS back *)
-         DBG "17e firsthalf 248->108" THEN
          ENSURES_INIT_TAC "s0" THEN
-         DBG "17e1 after ENSURES_INIT" THEN
          ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--2) THEN
-         DBG "17e2 after ARM 1-2" THEN
          ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
-         DBG "17e3 after FINAL+ASM_REWRITE" THEN
          REWRITE_TAC[ALL] THEN ASM_REWRITE_TAC[] THEN
          CONJ_TAC THENL [NONOVERLAPPING_TAC; NONOVERLAPPING_TAC];
          (* pc+108 -> pc+256: CMP X9,X4; BCS forward since X9=niblen>=256 *)
-         DBG "17f secondhalf 108->256" THEN
          ENSURES_INIT_TAC "s0" THEN
-         DBG "17f1 after ENSURES_INIT" THEN
          SUBGOAL_THEN `256 <= val(word niblen:int64)` ASSUME_TAC THENL
           [REWRITE_TAC[VAL_WORD; DIMINDEX_64] THEN
            SUBGOAL_THEN `niblen MOD 2 EXP 64 = niblen` SUBST1_TAC THENL
@@ -3765,18 +3623,13 @@ e (DBG "01 START" THEN
              ASM_REWRITE_TAC[]];
            ALL_TAC] THEN
          ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--2) THEN
-         DBG "17f2 after ARM 1-2" THEN
          ENSURES_FINAL_STATE_TAC THEN
-         DBG "17f3 after FINAL" THEN
          REWRITE_TAC[ALL] THEN ASM_REWRITE_TAC[] THEN
-         DBG "17f4 after REWRITE ALL" THEN
          EXISTS_TAC `N:num` THEN
          CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN ASM_REWRITE_TAC[] THEN
-         DBG "17f5 after EXISTS+let_CONV" THEN
          UNDISCH_TAC `niblen < 272` THEN EXPAND_TAC "niblen" THEN
          ARITH_TAC];
        (* Subcase: X2 < 8 — falls through *)
-       DBG "17g X2<8 subcase" THEN
        ENSURES_INIT_TAC "s0" THEN
        ARM_STEPS_TAC MLDSA_REJ_UNIFORM_ETA4_EXEC (1--2) THEN
        ENSURES_FINAL_STATE_TAC THEN
