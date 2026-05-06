@@ -57,7 +57,7 @@ let mldsa_rej_uniform_eta4_mc = define_assert_from_elf
   0x54000482;       (* arm_BCS (word 144) *)
   0xd1002042;       (* arm_SUB X2 X2 (rvalue (word 8)) *)
   0x0cdf7020;       (* arm_LDR D0 X1 (Postimmediate_Offset (word 8)) *)
-  0x0f00e5fa;       (* arm_MOVI Q26 (word 1085102592571150095) *)
+  0x0f00e5fa;       (* arm_MOVI D26 (word 1085102592571150095) *)
   0x0e3a1c1b;       (* arm_AND_VEC Q27 Q0 Q26 64 *)
   0x2f0c041c;       (* arm_USHR_VEC Q28 Q0 4 8 64 *)
   0x0e1c3b7a;       (* arm_ZIP1 Q26 Q27 Q28 8 64 *)
