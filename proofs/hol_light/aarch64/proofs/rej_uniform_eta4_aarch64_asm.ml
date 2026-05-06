@@ -3672,13 +3672,9 @@ let MLDSA_REJ_UNIFORM_ETA4_CORRECT = prove
       [DISJ1_TAC THEN ASM_REWRITE_TAC[]; ALL_TAC] THEN
      ASM_REWRITE_TAC[]]]);;
 
-let LENGTH_SIMPLIFY_CONV =
-  REWRITE_CONV[LENGTH_MLDSA_REJ_UNIFORM_ETA4_MC] THENC
-  NUM_REDUCE_CONV THENC REWRITE_CONV [ADD_0];;
-
 (* ------------------------------------------------------------------------- *)
-(* Subroutine form: includes stack frame allocation/deallocation and return.  *)
-(* C signature: uint64_t mld_rej_uniform_eta4_asm(int32_t *r,                *)
+(* Subroutine form: includes stack frame allocation/deallocation and return. *)
+(* C signature: uint64_t mld_rej_uniform_eta4_aarch64_asm(int32_t *r,         *)
 (*   const uint8_t *buf, unsigned buflen, const uint8_t table[4096]);        *)
 (* ------------------------------------------------------------------------- *)
 
@@ -3712,9 +3708,9 @@ let MLDSA_REJ_UNIFORM_ETA4_SUBROUTINE_CORRECT = prove
              (MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
               MAYCHANGE [memory :> bytes(res,1024);
                          memory :> bytes(word_sub stackpointer (word 576),576)])`,
-  REWRITE_TAC[fst MLDSA_REJ_UNIFORM_ETA4_EXEC] THEN
-  ARM_ADD_RETURN_STACK_TAC ~pre_post_nsteps:(1,2)
-   MLDSA_REJ_UNIFORM_ETA4_EXEC
-   (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA4_EXEC]
-     (CONV_RULE LENGTH_SIMPLIFY_CONV MLDSA_REJ_UNIFORM_ETA4_CORRECT))
-   `[]` 0);;
+  ARM_ADD_RETURN_STACK_TAC
+    ~pre_post_nsteps:(1,1)
+    MLDSA_REJ_UNIFORM_ETA4_EXEC
+    (REWRITE_RULE[fst MLDSA_REJ_UNIFORM_ETA4_EXEC]
+       MLDSA_REJ_UNIFORM_ETA4_CORRECT)
+    `[]:((armstate,int64)component)list` 576);;
