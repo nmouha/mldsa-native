@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778168506363,
+  "lastUpdate": 1778181216597,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -644457,6 +644457,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 134297,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "distinct": true,
+          "id": "429b66a72651b77614f8fbae193432f2bf8c775c",
+          "message": "Doc: Improve documentation of externalmu and relax its CBMC contract\n\nThe externalmu flag on sign_signature_internal/sign_verify_internal was\nonly described as \"indicates input message m is processed as mu\", which\nleft readers guessing about the meaning of 0 vs 1, the constraints on\nmlen/pre/prelen, and how to compute mu for the *_extmu wrappers. Expand\nthe doc comments in mldsa_native.h and sign.h to spell out both modes,\nand describe what mu is (SHAKE256(tr || M', 64)) for the *_extmu APIs.\n\nAlso relax the CBMC contract from externalmu == 1 to externalmu != 0 to\nmatch the implementation.\n\nThanks to @nicolabalzano for reporting that the documentation is unclear.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-07T20:12:15+01:00",
+          "tree_id": "03e94a167ef3d7e1d6bf3778d0160a93f001ea5c",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/429b66a72651b77614f8fbae193432f2bf8c775c"
+        },
+        "date": 1778181172386,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 46505,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 132258,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 47316,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 81697,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 216906,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 79311,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 132440,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 280111,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 134275,
             "unit": "cycles"
           }
         ]
