@@ -4,12 +4,15 @@
 { stdenv, fetchFromGitHub, writeText, ... }:
 stdenv.mkDerivation rec {
   pname = "s2n_bignum";
-  version = "f3c5acff6948d559194245237f6aaa7ebf7fcae8";
+  # Pinned to https://github.com/awslabs/s2n-bignum/pull/387 head,
+  # which adds VMOVMSKPS, VPMOVZXBD, and VZEROUPPER instruction models
+  # required by the x86_64 rej_uniform proof.
+  version = "4c4fe1dfc8b79720013517a7b4dec9014c85fcf2";
   src = fetchFromGitHub {
     owner = "awslabs";
     repo = "s2n-bignum";
     rev = "${version}";
-    hash = "sha256-kfc8X2e+voefttshSUdifDc3Qn+dx0Gq5ENNLhWIdw0=";
+    hash = "sha256-64MJOqoDunpn6fx1j9P4+fDoRNZ8GRTB/d4C2JWvxFA=";
   };
   setupHook = writeText "setup-hook.sh" ''
     export S2N_BIGNUM_DIR="$1"
