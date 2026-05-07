@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778130266972,
+  "lastUpdate": 1778130407873,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -250137,6 +250137,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 126601,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "dkostic@amazon.com",
+            "name": "dkostic",
+            "username": "dkostic"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "2c9e21c81b5e818e93a965814668e016db479ff0",
+          "message": "Add AArch64 ML-DSA Inverse NTT HOL Light proof and CBMC contract\n\nPort the AArch64 inverse NTT HOL Light proof from s2n-bignum, establishing\nfunctional correctness, memory safety, and constant-time behavior of the\nAArch64 INTT assembly (input/output: abs <= 8380416). Adds the proof file,\nassembly source, zeta tables (via autogen), subroutine signature, and\nMakefile entry. Ports arm_mldsa_inverse_ntt (and companions) into\ncommon/mldsa_specs.ml and MEMORY_64_FROM_32_TAC into aarch64_utils.ml so\nmldsa-native stays standalone-reproducible. Bumps the nix s2n-bignum pin\nto f3c5acff for decoder support of the AArch64 instructions used by the\nINTT assembly, and adds mldsa_intt to the aarch64 hol_light_proofs CI\nmatrix.\n\nAdds a CBMC contract and proof for mld_intt_native matching the HOL-Light\nbounds.\n\nSigned-off-by: dkostic <dkostic@amazon.com>",
+          "timestamp": "2026-05-07T13:02:01+08:00",
+          "tree_id": "f60d5314a43a1da5b85ff28fa2e89b7e91e6f57e",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/2c9e21c81b5e818e93a965814668e016db479ff0"
+        },
+        "date": 1778130277819,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 45505,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 137050,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 47278,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 79189,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 223997,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 78208,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 128948,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 284702,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 126533,
             "unit": "cycles"
           }
         ]
