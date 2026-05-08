@@ -3986,6 +3986,24 @@ let MLDSA_REJ_UNIFORM_CORRECT = prove
               with _ -> failwith "memory finalize failed")]]]]]);;
 
 (* ========================================================================= *)
+(* Coefficient bound on the abstract output list                             *)
+(* SUB_LIST (0,256) (REJ_SAMPLE inlist). Every sampled coefficient is a      *)
+(* valid ML-DSA element (val < q = 8380417). Proved directly from the        *)
+(* FILTER shape of REJ_SAMPLE. Callers can specialize via EL / MEM_EL.       *)
+(* ========================================================================= *)
+
+let REJ_SAMPLE_COEFF_BOUND = prove
+ (`!(inlist:(24 word)list) c.
+      MEM c (SUB_LIST(0,256) (REJ_SAMPLE inlist)) ==> val c < 8380417`,
+  REPEAT GEN_TAC THEN DISCH_TAC THEN
+  SUBGOAL_THEN `MEM (c:int32) (REJ_SAMPLE(inlist:(24 word)list))` MP_TAC THENL
+   [MP_TAC(ISPECL [`REJ_SAMPLE(inlist:(24 word)list)`; `256`] SUB_LIST_TOPSPLIT) THEN
+    DISCH_THEN(fun th ->
+      GEN_REWRITE_TAC (RAND_CONV o ONCE_DEPTH_CONV) [SYM th]) THEN
+    ASM_REWRITE_TAC[MEM_APPEND];
+    REWRITE_TAC[REJ_SAMPLE; MEM_FILTER] THEN MESON_TAC[]]);;
+
+(* ========================================================================= *)
 (* SUBROUTINE_CORRECT variants (standard x86_64 ABI).                        *)
 (*                                                                           *)
 (* These specifications must be kept in sync with the CBMC contract in       *)
