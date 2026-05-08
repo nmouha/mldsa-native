@@ -10,6 +10,8 @@
 
 needs "s2n_bignum/x86/proofs/base.ml";;
 
+needs "mldsa_native/common/mldsa_specs.ml";;
+
 needs "mldsa_native/x86_64/proofs/mldsa_rej_uniform_table.ml";;
 
 (*** print_literal_from_elf "x86_64/mldsa/rej_uniform_avx2_asm.o";;
@@ -718,18 +720,11 @@ let VAL_MOD_23_EQ_AND = prove
                word_and (word_zx w:int32) (word 8388607)`,
   GEN_TAC THEN CONV_TAC WORD_BLAST);;
 
-let REJ_SAMPLE = define
- `REJ_SAMPLE l = FILTER (\x:int32. val x < 8380417)
-    (MAP (\x:24 word. word(val x MOD 2 EXP 23):int32) l)`;;
-
-let REJ_SAMPLE_EMPTY = prove
- (`REJ_SAMPLE [] = []`,
-  REWRITE_TAC[REJ_SAMPLE; FILTER; MAP]);;
-
-let REJ_SAMPLE_APPEND = prove
- (`!l1 l2. REJ_SAMPLE(APPEND l1 l2) =
-           APPEND (REJ_SAMPLE l1) (REJ_SAMPLE l2)`,
-  REWRITE_TAC[REJ_SAMPLE; MAP_APPEND; FILTER_APPEND]);;
+(* REJ_SAMPLE, REJ_SAMPLE_EMPTY, REJ_SAMPLE_APPEND are defined in
+   proofs/hol_light/common/mldsa_specs.ml (shared with the aarch64 proof
+   to match the shape used in s2n-bignum #378). The x86-specific
+   REJ_SAMPLE_SPLIT / REJ_SAMPLE_PREFIX_256 / REJ_SAMPLE_STEP_LE lemmas
+   below are currently only used by the AVX2 scalar-tail analysis. *)
 
 let mldsa_mask_lemma = prove
  ((rand o concl o (EXPAND_CASES_CONV THENC NUM_REDUCE_CONV))

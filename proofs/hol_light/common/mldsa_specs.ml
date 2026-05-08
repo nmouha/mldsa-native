@@ -1953,3 +1953,25 @@ let MLDSA_DECOMPOSE_88_A0_MAP_BOUND = prove(
   STRIP_TAC THEN CONJ_TAC THENL
   [MATCH_MP_TAC MLDSA_DECOMPOSE_88_A0_BOUND THEN ASM_REWRITE_TAC[];
    FIRST_X_ASSUM MATCH_MP_TAC THEN ASM_REWRITE_TAC[]]);;
+
+(* ========================================================================= *)
+(* ML-DSA rejection uniform sampling specification.                          *)
+(*                                                                           *)
+(* REJ_SAMPLE models the coefficient-extraction pipeline: take each 24-bit   *)
+(* input word, keep only its low 23 bits (word_zx via MOD 2^23), reinterpret *)
+(* as an int32, and retain those whose unsigned value is < q = 8380417.      *)
+(* Matches the shape used in s2n-bignum #378 (aarch64) and #401 (x86).       *)
+(* ========================================================================= *)
+
+let REJ_SAMPLE = define
+ `REJ_SAMPLE l = FILTER (\x:int32. val x < 8380417)
+    (MAP (\x:24 word. word(val x MOD 2 EXP 23):int32) l)`;;
+
+let REJ_SAMPLE_EMPTY = prove
+ (`REJ_SAMPLE [] = []`,
+  REWRITE_TAC[REJ_SAMPLE; FILTER; MAP]);;
+
+let REJ_SAMPLE_APPEND = prove
+ (`!l1 l2. REJ_SAMPLE(APPEND l1 l2) =
+           APPEND (REJ_SAMPLE l1) (REJ_SAMPLE l2)`,
+  REWRITE_TAC[REJ_SAMPLE; MAP_APPEND; FILTER_APPEND]);;
