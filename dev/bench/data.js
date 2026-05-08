@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778209183702,
+  "lastUpdate": 1778209188797,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -309189,6 +309189,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 130518,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "beckphan@amazon.co.uk",
+            "name": "Hanno Becker",
+            "username": "hanno-becker"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "2c5f4ad299e5dd4dae8d1ff6e50df1873a6f0a2d",
+          "message": "nix: Anchor HOL-Light shellHook to repo root, not $PWD\n\nThe holLightShellHook set PROOF_DIR (and thus IMPORTS_DIR) from $PWD,\nwhich is whatever directory the user ran `nix develop` from. Entering\nthe shell from a subdirectory (e.g. proofs/cbmc/) caused PROOF_DIR to\nresolve to a non-existent nested path, and the .imports/ directory\nplus its `mldsa_native` / `s2n_bignum` symlinks were created under\nthat wrong location -- with `mldsa_native` pointing at a path that\ndoes not exist.\n\nResolve the repo root via `git rev-parse --show-toplevel` (matching\nthe pattern already used in nix/hol_light/hol-server.sh), with a\n$PWD fallback for non-git invocations, so PATH / PROOF_DIR /\nIMPORTS_DIR are stable regardless of the invocation cwd.\n\nSigned-off-by: Hanno Becker <beckphan@amazon.co.uk>",
+          "timestamp": "2026-05-08T10:54:16+08:00",
+          "tree_id": "b32cfb1712d48528383384bacb5ff68d6e527f16",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/2c5f4ad299e5dd4dae8d1ff6e50df1873a6f0a2d"
+        },
+        "date": 1778209046620,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 47648,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 144636,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 50605,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 84549,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 230881,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 83941,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 132347,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 283499,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 130175,
             "unit": "cycles"
           }
         ]
