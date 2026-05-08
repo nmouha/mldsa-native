@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1778219987919,
+  "lastUpdate": 1778219999407,
   "repoUrl": "https://github.com/pq-code-package/mldsa-native",
   "entries": {
     "Arm Cortex-A72 (Raspberry Pi 4) benchmarks (opt)": [
@@ -366309,6 +366309,75 @@ window.BENCHMARK_DATA = {
           {
             "name": "ML-DSA-87 verify",
             "value": 382279,
+            "unit": "cycles"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "matthias@zerorisc.com",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "committer": {
+            "email": "matthias@kannwischer.eu",
+            "name": "Matthias J. Kannwischer",
+            "username": "mkannwischer"
+          },
+          "distinct": true,
+          "id": "d81546a95e54b3522635047b8a49f66dd45e4cb5",
+          "message": "sign: Consolidate make_hint and pack_sig_h\n\nReplace mld_poly_make_hint + the per-polynomial mld_pack_sig_h_poly\nwith a single mld_pack_sig_h that takes (w0, w1) polyvecks directly,\ncomputes hint bits via mld_make_hint, and writes hint indices into\nsig in one pass over all K rows. The function returns MLD_ERR_FAIL\nif the total number of hints exceeds MLDSA_OMEGA, in which case the\ncaller must reject the signature.\n\nThis removes the duplicated hint counting (previously make_hint\nreturned the count and pack iterated the hint poly again without\nre-validating), drops the temporary scratch hint polynomial from\nsign.c, and lets sign.c emit a single call instead of a K-loop with\nper-row tally bookkeeping.\n\nSigned-off-by: Matthias J. Kannwischer <matthias@zerorisc.com>",
+          "timestamp": "2026-05-08T13:54:31+08:00",
+          "tree_id": "ddac6c0257016797c584c34a84d3beaff81d17b7",
+          "url": "https://github.com/pq-code-package/mldsa-native/commit/d81546a95e54b3522635047b8a49f66dd45e4cb5"
+        },
+        "date": 1778219998701,
+        "tool": "customSmallerIsBetter",
+        "benches": [
+          {
+            "name": "ML-DSA-44 keypair",
+            "value": 134253,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 sign",
+            "value": 523460,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-44 verify",
+            "value": 147151,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 keypair",
+            "value": 225932,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 sign",
+            "value": 852714,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-65 verify",
+            "value": 234337,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 keypair",
+            "value": 368621,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 sign",
+            "value": 1069533,
+            "unit": "cycles"
+          },
+          {
+            "name": "ML-DSA-87 verify",
+            "value": 381669,
             "unit": "cycles"
           }
         ]
