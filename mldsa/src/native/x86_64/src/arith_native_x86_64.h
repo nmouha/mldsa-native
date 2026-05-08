@@ -74,7 +74,7 @@ __contract__(
 );
 
 #define mld_rej_uniform_avx2_asm MLD_NAMESPACE(rej_uniform_avx2_asm)
-/* This must be kept in sync with the HOL-Light specification
+/* This contract must be kept in sync with the HOL-Light specification
  * in proofs/hol_light/x86_64/proofs/rej_uniform_avx2_asm.ml */
 MLD_MUST_CHECK_RETURN_VALUE
 unsigned mld_rej_uniform_avx2_asm(
@@ -82,8 +82,8 @@ unsigned mld_rej_uniform_avx2_asm(
     const uint8_t *table)
 __contract__(
   requires(memory_no_alias(r, sizeof(int32_t) * MLDSA_N))
-  requires(memory_no_alias(buf, MLD_AVX2_REJ_UNIFORM_BUFLEN))
-  requires(memory_no_alias(table, 256 * sizeof(uint64_t)))
+  requires(memory_no_alias(buf, 840))
+  requires(table == (const uint8_t *)mld_rej_uniform_table)
   assigns(memory_slice(r, sizeof(int32_t) * MLDSA_N))
   ensures(return_value <= MLDSA_N)
   ensures(array_bound(r, 0, return_value, 0, MLDSA_Q))

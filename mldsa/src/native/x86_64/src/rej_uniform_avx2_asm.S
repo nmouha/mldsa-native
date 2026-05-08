@@ -88,7 +88,6 @@ Lrej_uniform_avx2_asm_scalar:
         jmp Lrej_uniform_avx2_asm_scalar
 
 Lrej_uniform_avx2_asm_done:
-        vzeroupper
         retq
         .cfi_endproc
 

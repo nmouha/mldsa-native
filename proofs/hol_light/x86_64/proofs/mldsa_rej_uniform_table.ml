@@ -1,11 +1,18 @@
 (*
- * Copyright (c) The mldsa-native project authors
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  * SPDX-License-Identifier: Apache-2.0 OR ISC OR MIT-0
  *)
 
-(* Lookup table for ML-DSA rejection uniform sampling. *)
-(* Each entry is 8 bytes: permutation indices for VPERMD. *)
+(*
+ * WARNING: This file is auto-generated from scripts/autogen
+ *          in the mldsa-native repository.
+ *          Do not modify it directly.
+ *)
+
+(*
+ * Lookup table used by rejection sampling in the x86_64 AVX2
+ * implementation. See autogen for details.
+ *)
 
 let mldsa_rej_uniform_table = (REWRITE_RULE[MAP] o define)
   `mldsa_rej_uniform_table:byte list = MAP word [
@@ -264,5 +271,5 @@ let mldsa_rej_uniform_table = (REWRITE_RULE[MAP] o define)
     2;   3;   4;   5;   6;   7;   0;   0;
     0;   2;   3;   4;   5;   6;   7;   0;
     1;   2;   3;   4;   5;   6;   7;   0;
-    0;   1;   2;   3;   4;   5;   6;   7]`
-;;
+    0;   1;   2;   3;   4;   5;   6;   7
+]`;;

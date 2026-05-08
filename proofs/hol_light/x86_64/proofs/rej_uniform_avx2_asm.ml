@@ -101,7 +101,6 @@ let mldsa_rej_uniform_mc = define_assert_from_elf
   0x44; 0x89; 0x04; 0x87;  (* MOV (Memop Doubleword (%%% (rdi,2,rax))) (% r8d) *)
   0x83; 0xc0; 0x01;        (* ADD (% eax) (Imm8 (word 1)) *)
   0xeb; 0xc3;              (* JMP (Imm8 (word 195)) *)
-  0xc5; 0xf8; 0x77;        (* VZEROUPPER *)
   0xc3                     (* RET *)
 ];;
 (*** BYTECODE END ***)
@@ -405,6 +404,31 @@ let CMP_MASK_CORRECT = prove(
   REPEAT(COND_CASES_TAC THEN ASM_REWRITE_TAC[]) THEN
   CONV_TAC(DEPTH_CONV WORD_NUM_RED_CONV) THEN
   CONV_TAC NUM_REDUCE_CONV);;
+
+(* Pre-compute the 256 table entry values for VPERMD brute force.
+   Each entry is an int64 value: 8 bytes from the table at offset 8*mask. *)
+let TABLE_ENTRY_VALS =
+  let table_expanded =
+    (REWRITE_CONV[mldsa_rej_uniform_table; num_of_wordlist; DIMINDEX_8] THENC
+     DEPTH_CONV WORD_NUM_RED_CONV THENC NUM_REDUCE_CONV)
+    `num_of_wordlist mldsa_rej_uniform_table` in
+  let table_num = rhs(concl table_expanded) in
+  let entries = Array.init 256 (fun m ->
+    let tm = mk_comb(mk_comb(`(MOD)`,
+      mk_comb(mk_comb(`(DIV)`, table_num),
+      mk_comb(mk_comb(`(EXP)`, `2`), mk_numeral(Num.num_of_int(64*m))))),
+      mk_comb(mk_comb(`(EXP)`, `2`), `64`)) in
+    let th = NUM_REDUCE_CONV tm in
+    let rhs_val = rhs(concl th) in
+    (* Prove: (num_of_wordlist table DIV 2^(64*m)) MOD 2^64 = entry_m *)
+    let lhs_tm = mk_comb(mk_comb(`(MOD)`,
+      mk_comb(mk_comb(`(DIV)`,
+        `num_of_wordlist mldsa_rej_uniform_table`),
+      mk_comb(mk_comb(`(EXP)`, `2`), mk_numeral(Num.num_of_int(64*m))))),
+      mk_comb(mk_comb(`(EXP)`, `2`), `64`)) in
+    let eq = mk_eq(lhs_tm, rhs_val) in
+    EQT_ELIM((REWRITE_CONV[table_expanded] THENC NUM_REDUCE_CONV) eq)) in
+  entries;;
 
 (* TABLE_ENTRY_FROM_MEMORY: connect bytes64 memory read at table+8k to
    (table_num DIV 2^(64k)) MOD 2^64 via bigdigit/bignum_from_memory *)
@@ -1416,9 +1440,9 @@ let VAL_RCX_ADD3_ZX = prove
 let SCALAR_BODY_LEMMA = prove
  (`!res buf table (inlist:(24 word)list) pc stackpointer N K i.
     LENGTH inlist = 280 /\
-    nonoverlapping (word pc, 246) (res, 1024) /\
-    nonoverlapping (word pc, 246) (buf, 840) /\
-    nonoverlapping (word pc, 246) (table, 2048) /\
+    nonoverlapping (word pc, 243) (res, 1024) /\
+    nonoverlapping (word pc, 243) (buf, 840) /\
+    nonoverlapping (word pc, 243) (table, 2048) /\
     nonoverlapping (res, 1024) (buf, 840) /\
     nonoverlapping (res, 1024) (table, 2048) /\
     24 * N <= 832 /\
@@ -2284,9 +2308,9 @@ let SCALAR_BODY_LEMMA = prove
 let MLDSA_REJ_UNIFORM_CORRECT = prove
  (`!res buf table (inlist:(24 word)list) pc.
     LENGTH inlist = 280 /\
-    nonoverlapping (word pc, 246) (res, 1024) /\
-    nonoverlapping (word pc, 246) (buf, 840) /\
-    nonoverlapping (word pc, 246) (table, 2048) /\
+    nonoverlapping (word pc, 243) (res, 1024) /\
+    nonoverlapping (word pc, 243) (buf, 840) /\
+    nonoverlapping (word pc, 243) (table, 2048) /\
     nonoverlapping (res, 1024) (buf, 840) /\
     nonoverlapping (res, 1024) (table, 2048)
     ==> ensures x86
@@ -2296,7 +2320,7 @@ let MLDSA_REJ_UNIFORM_CORRECT = prove
               read(memory :> bytes(buf,840)) s = num_of_wordlist inlist /\
               read(memory :> bytes(table,2048)) s =
                 num_of_wordlist(mldsa_rej_uniform_table:byte list))
-         (\s. read RIP s = word(pc + 245) /\
+         (\s. read RIP s = word(pc + 242) /\
               let outlist = SUB_LIST(0,256) (REJ_SAMPLE inlist) in
               let outlen = LENGTH outlist in
               C_RETURN s = word outlen /\
@@ -3775,7 +3799,7 @@ let MLDSA_REJ_UNIFORM_CORRECT = prove
            is_eq(concl th)
         then ASSUME_TAC(CONV_RULE(RAND_CONV(DEPTH_CONV WORD_NUM_RED_CONV)) th)
         else failwith "not RIP") THEN
-      X86_STEPS_TAC MLDSA_REJ_UNIFORM_EXEC [55] THEN
+      (* vzeroupper removed (was step 55); RIP is already at the RET. *)
       ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
       CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
       SUBGOAL_THEN `SUB_LIST (0,256) (REJ_SAMPLE (inlist:(24 word)list)) =
@@ -3843,8 +3867,7 @@ let MLDSA_REJ_UNIFORM_CORRECT = prove
           let c = concl th in
           if is_conj c && (try can (find_term ((=) `LENGTH (REJ_SAMPLE (SUB_LIST (0,8 * N + K) (inlist:(24 word)list)))`)) c with _ -> false)
           then STRIP_ASSUME_TAC th else failwith "not inv") THEN
-        (* VZEROUPPER *)
-        X86_STEPS_TAC MLDSA_REJ_UNIFORM_EXEC [55] THEN
+        (* vzeroupper removed (was step 55); RIP is already at the RET. *)
         ENSURES_FINAL_STATE_TAC THEN ASM_REWRITE_TAC[] THEN
         CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
         (* The disjunct at K: either count-exit (256 <= outlen_K) or offset-exit (837 < 24*N+3*K) *)
@@ -3969,6 +3992,10 @@ let MLDSA_REJ_UNIFORM_CORRECT = prove
 
 (* ========================================================================= *)
 (* SUBROUTINE_CORRECT variants (standard x86_64 ABI).                        *)
+(*                                                                           *)
+(* These specifications must be kept in sync with the CBMC contract in       *)
+(* dev/x86_64/src/arith_native_x86_64.h / mldsa/src/native/x86_64/src/       *)
+(* arith_native_x86_64.h for mld_rej_uniform_avx2_asm.                       *)
 (* ========================================================================= *)
 
 let MLDSA_REJ_UNIFORM_NOIBT_SUBROUTINE_CORRECT = prove
