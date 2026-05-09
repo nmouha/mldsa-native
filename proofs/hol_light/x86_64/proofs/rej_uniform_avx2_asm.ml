@@ -4003,6 +4003,116 @@ let REJ_SAMPLE_COEFF_BOUND = prove
     ASM_REWRITE_TAC[MEM_APPEND];
     REWRITE_TAC[REJ_SAMPLE; MEM_FILTER] THEN MESON_TAC[]]);;
 
+(* Helper: val of a memory-resident 32-bit word = read of its 4 bytes.       *)
+let VAL_READ_BYTES32 = prove
+ (`!(a:int64) (s:x86state).
+      val(read (memory :> bytes32 a) s) = read(memory :> bytes(a,4)) s`,
+  REPEAT GEN_TAC THEN
+  REWRITE_TAC[bytes32; READ_COMPONENT_COMPOSE; asword; through; read] THEN
+  REWRITE_TAC[VAL_WORD; DIMINDEX_32] THEN MATCH_MP_TAC MOD_LT THEN
+  MP_TAC (ISPECL [`a:int64`;
+                  `4:num`;
+                  `(read (memory:(x86state,int64->byte)component) s):int64->byte`]
+                 READ_BYTES_BOUND) THEN
+  ARITH_TAC);;
+
+(* x86 postcondition-strengthening lemma (analogue of aarch64/ENSURES_STRENGTHEN_POST) *)
+let ENSURES_STRENGTHEN_POST_X86 = prove
+ (`!P (Q:x86state->bool) Q' R.
+     ensures x86 P Q' R /\ (!s. Q' s ==> Q s) ==> ensures x86 P Q R`,
+  REPEAT GEN_TAC THEN DISCH_THEN(CONJUNCTS_THEN2 MP_TAC ASSUME_TAC) THEN
+  REWRITE_TAC[ensures] THEN MATCH_MP_TAC MONO_FORALL THEN
+  X_GEN_TAC `s0:x86state` THEN MATCH_MP_TAC MONO_IMP THEN REWRITE_TAC[] THEN
+  MP_TAC(BETA_RULE(ISPECL [`x86`;
+    `\s':x86state. (Q':x86state->bool) s' /\ (R:x86state->x86state->bool) (s0:x86state) s'`;
+    `\s':x86state. (Q:x86state->bool) s' /\ (R:x86state->x86state->bool) (s0:x86state) s'`]
+    EVENTUALLY_MONO)) THEN
+  ANTS_TAC THENL [ASM_MESON_TAC[]; MESON_TAC[]]);;
+
+(* Bridge: when a contiguous memory region equals num_of_wordlist of an      *)
+(* int32 list, the i-th 32-bit element read back equals the list's i-th     *)
+(* element (as num).                                                        *)
+let VAL_READ_BYTES32_FROM_WORDLIST = prove
+ (`!(outlist:int32 list) (a:int64) (s:x86state) i.
+      i < LENGTH outlist /\
+      read(memory :> bytes(a, 4 * LENGTH outlist)) s = num_of_wordlist outlist
+      ==> val(read(memory :> bytes32(word_add a (word(4 * i)))) s) =
+          val(EL i outlist)`,
+  REPEAT STRIP_TAC THEN REWRITE_TAC[VAL_READ_BYTES32] THEN
+  SUBGOAL_THEN
+    `read(memory :> bytes(word_add a (word (4 * i)),4)) s =
+     read(memory :> bytes(a:int64,4 * LENGTH(outlist:int32 list))) s
+       DIV 2 EXP (8 * (4 * i)) MOD 2 EXP (8 * 4)`
+  SUBST1_TAC THENL
+   [REWRITE_TAC[READ_COMPONENT_COMPOSE; READ_BYTES_MOD; READ_BYTES_DIV] THEN
+    SUBGOAL_THEN `MIN (4 * LENGTH(outlist:int32 list) - 4 * i) 4 = 4`
+    SUBST1_TAC THENL
+     [UNDISCH_TAC `i < LENGTH(outlist:int32 list)` THEN ARITH_TAC;
+      REFL_TAC];
+    ASM_REWRITE_TAC[] THEN
+    MP_TAC(ISPECL [`outlist:int32 list`; `i:num`]
+                  (INST_TYPE [`:32`,`:N`] EL_NUM_OF_WORDLIST)) THEN
+    ASM_REWRITE_TAC[DIMINDEX_32] THEN DISCH_THEN SUBST1_TAC THEN
+    REWRITE_TAC[VAL_WORD; DIMINDEX_32;
+                ARITH_RULE `8 * 4 * i = 32 * i`;
+                ARITH_RULE `8 * 4 = 32`]]);;
+
+(* Strengthened core correctness: adds per-coefficient bound, matching the  *)
+(* CBMC contract `ensures(array_bound(buf, 0, len, 0, 8380417))`.           *)
+let MLDSA_REJ_UNIFORM_CORRECT_BOUND = prove
+ (`!res buf table (inlist:(24 word)list) pc.
+    LENGTH inlist = 280 /\
+    nonoverlapping (word pc, 243) (res, 1024) /\
+    nonoverlapping (word pc, 243) (buf, 840) /\
+    nonoverlapping (word pc, 243) (table, 2048) /\
+    nonoverlapping (res, 1024) (buf, 840) /\
+    nonoverlapping (res, 1024) (table, 2048)
+    ==> ensures x86
+         (\s. bytes_loaded s (word pc) (BUTLAST mldsa_rej_uniform_tmc) /\
+              read RIP s = word pc /\
+              C_ARGUMENTS [res; buf; table] s /\
+              read(memory :> bytes(buf,840)) s = num_of_wordlist inlist /\
+              read(memory :> bytes(table,2048)) s =
+                num_of_wordlist(mldsa_rej_uniform_table:byte list))
+         (\s. read RIP s = word(pc + 242) /\
+              let outlist = SUB_LIST(0,256) (REJ_SAMPLE inlist) in
+              let outlen = LENGTH outlist in
+              C_RETURN s = word outlen /\
+              read(memory :> bytes(res,4 * outlen)) s =
+                num_of_wordlist outlist /\
+              (!i. i < outlen
+                   ==> val(read(memory :> bytes32
+                                 (word_add res (word(4 * i)))) s) < 8380417))
+         (MAYCHANGE [RIP; RAX; RCX; R8; R9; R10] ,,
+          MAYCHANGE [ZMM0; ZMM1; ZMM2; ZMM3; ZMM4;
+                     ZMM5; ZMM6; ZMM7; ZMM8; ZMM9; ZMM10; ZMM11;
+                     ZMM12; ZMM13; ZMM14; ZMM15] ,,
+          MAYCHANGE SOME_FLAGS ,, MAYCHANGE [events] ,,
+          MAYCHANGE [memory :> bytes(res,1024)])`,
+  REPEAT GEN_TAC THEN STRIP_TAC THEN
+  MATCH_MP_TAC ENSURES_STRENGTHEN_POST_X86 THEN
+  EXISTS_TAC
+   `\s:x86state.
+      read RIP s = word(pc + 242) /\
+      (let outlist = SUB_LIST(0,256) (REJ_SAMPLE (inlist:(24 word)list)) in
+       let outlen = LENGTH outlist in
+       C_RETURN s = word outlen /\
+       read(memory :> bytes(res:int64,4 * outlen)) s =
+         num_of_wordlist outlist)` THEN
+  CONJ_TAC THENL
+   [MATCH_MP_TAC MLDSA_REJ_UNIFORM_CORRECT THEN ASM_REWRITE_TAC[];
+    BETA_TAC THEN GEN_TAC THEN CONV_TAC(TOP_DEPTH_CONV let_CONV) THEN
+    STRIP_TAC THEN ASM_REWRITE_TAC[] THEN
+    X_GEN_TAC `i:num` THEN DISCH_TAC THEN
+    MP_TAC(ISPECL
+      [`SUB_LIST(0,256) (REJ_SAMPLE (inlist:(24 word)list))`;
+       `res:int64`; `s:x86state`; `i:num`]
+      VAL_READ_BYTES32_FROM_WORDLIST) THEN
+    ASM_REWRITE_TAC[] THEN DISCH_THEN SUBST1_TAC THEN
+    MATCH_MP_TAC REJ_SAMPLE_COEFF_BOUND THEN
+    EXISTS_TAC `inlist:(24 word)list` THEN
+    MATCH_MP_TAC MEM_EL THEN ASM_REWRITE_TAC[]]);;
+
 (* ========================================================================= *)
 (* SUBROUTINE_CORRECT variants (standard x86_64 ABI).                        *)
 (*                                                                           *)
@@ -4038,11 +4148,14 @@ let MLDSA_REJ_UNIFORM_NOIBT_SUBROUTINE_CORRECT = prove
                let outlen = LENGTH outlist in
                C_RETURN s = word outlen /\
                read(memory :> bytes(res,4 * outlen)) s =
-                 num_of_wordlist outlist))
+                 num_of_wordlist outlist /\
+               (!i. i < outlen
+                    ==> val(read(memory :> bytes32
+                                  (word_add res (word(4 * i)))) s) < 8380417)))
          (MAYCHANGE [RSP] ,, MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
           MAYCHANGE [memory :> bytes(res,1024)])`,
   X86_PROMOTE_RETURN_NOSTACK_TAC mldsa_rej_uniform_tmc
-    MLDSA_REJ_UNIFORM_CORRECT);;
+    MLDSA_REJ_UNIFORM_CORRECT_BOUND);;
 
 let MLDSA_REJ_UNIFORM_SUBROUTINE_CORRECT = prove
  (`!res buf table (inlist:(24 word)list) pc stackpointer returnaddress.
@@ -4071,7 +4184,10 @@ let MLDSA_REJ_UNIFORM_SUBROUTINE_CORRECT = prove
                let outlen = LENGTH outlist in
                C_RETURN s = word outlen /\
                read(memory :> bytes(res,4 * outlen)) s =
-                 num_of_wordlist outlist))
+                 num_of_wordlist outlist /\
+               (!i. i < outlen
+                    ==> val(read(memory :> bytes32
+                                  (word_add res (word(4 * i)))) s) < 8380417)))
          (MAYCHANGE [RSP] ,, MAYCHANGE_REGS_AND_FLAGS_PERMITTED_BY_ABI ,,
           MAYCHANGE [memory :> bytes(res,1024)])`,
   MATCH_ACCEPT_TAC(ADD_IBT_RULE MLDSA_REJ_UNIFORM_NOIBT_SUBROUTINE_CORRECT));;
